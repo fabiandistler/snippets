@@ -1,0 +1,28 @@
+snippet ggplot
+	ggplot2::ggplot(${1:data}, ggplot2::aes(${2:x}, ${3:y})) +
+	  ${0}
+
+snippet geom-point
+	ggplot2::geom_point()${0}
+
+snippet geom-line
+	ggplot2::geom_line()${0}
+
+snippet geom-bar
+	ggplot2::geom_bar()${0}
+
+snippet geom-histogram
+	ggplot2::geom_histogram(bins = ${1:30})${0}
+
+snippet theme-minimal
+	ggplot2::theme_minimal()${0}
+
+snippet labs
+	ggplot2::labs(
+	  title = "${1:Title}",
+	  x = "${2:X axis}",
+	  y = "${3:Y axis}"
+	)${0}
+
+snippet facet-wrap
+	ggplot2::facet_wrap(~${1:variable})${0}
