@@ -30,13 +30,62 @@ Invisibly returns list of installation results
 Install one or more snippet modules and compose them into the active
 snippet file that RStudio reads.
 }
+\details{
+\subsection{Source Types}{
+\itemize{
+\item \strong{"package"}: Install from R package (default)
+\item \strong{"local"}: Install from local filesystem
+\item \strong{"github"}: Install from GitHub repository (requires configuration)
+\item \strong{"url"}: Install from direct URLs (requires configuration)
+}
+}
+
+\subsection{GitHub Configuration}{
+
+For GitHub sources, set the repository via:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(snippets.github.repo = "user/repo")
+# or
+Sys.setenv(SNIPPETS_GITHUB_REPO = "user/repo")
+}\if{html}{\out{</div>}}
+
+Advanced GitHub specifications:
+\itemize{
+\item \code{"user/repo"} - use main branch, inst/snippets/ path
+\item \code{"user/repo@branch"} - use specific branch
+\item \code{"user/repo@branch/path/to/snippets"} - custom path
+}
+}
+
+\subsection{URL Configuration}{
+
+For URL sources, set module URLs via:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(snippets.module.urls = c("https://example.com/module1-r.snippets", 
+                                 "https://example.com/module2-r.snippets"))
+# or
+Sys.setenv(SNIPPETS_MODULE_URLS = "url1,url2")
+}\if{html}{\out{</div>}}
+}
+}
 \examples{
 \dontrun{\donttest{
-# Install modules from package
+# Install modules from package (default)
 install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
 
 # Install same modules for multiple types
 install_snippet_modules("dplyr", type = c("r", "markdown"))
+
+# Install from local files
+install_snippet_modules("custom_module", type = "r", source = "local")
+
+# Install from GitHub (requires configuration)
+options(snippets.github.repo = "user/snippet-collection")
+install_snippet_modules("dplyr", type = "r", source = "github")
+
+# Install from URLs (requires configuration)
+options(snippets.module.urls = c("https://example.com/dplyr-r.snippets"))
+install_snippet_modules("dplyr", type = "r", source = "url")
 
 # Install with backup disabled
 install_snippet_modules("tidyr", type = "r", backup = FALSE)

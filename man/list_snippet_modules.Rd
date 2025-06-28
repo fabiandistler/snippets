@@ -10,7 +10,7 @@ list_snippet_modules(type = "all", source = "all", installed_only = FALSE)
 \item{type}{Snippet type to filter by (e.g., "r", "markdown").
 Use "all" to show all types.}
 
-\item{source}{Source to filter by ("package", "local", "all")}
+\item{source}{Source to filter by ("package", "local", "github", "url", "all")}
 
 \item{installed_only}{Show only installed modules}
 }
@@ -20,16 +20,42 @@ Data frame with module information
 \description{
 List available snippet modules
 }
+\details{
+\subsection{Source Configuration}{
+
+GitHub and URL sources require configuration:
+
+\strong{GitHub}: Set repository via options or environment variable:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(snippets.github.repo = "user/repo")
+Sys.setenv(SNIPPETS_GITHUB_REPO = "user/repo")
+}\if{html}{\out{</div>}}
+
+\strong{URL}: Set module URLs via options or environment variable:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(snippets.module.urls = c("https://example.com/module-r.snippets"))
+Sys.setenv(SNIPPETS_MODULE_URLS = "url1,url2")
+}\if{html}{\out{</div>}}
+}
+}
 \examples{
 \dontrun{\donttest{
-# List all available R modules
+# List all available R modules from all sources
 list_snippet_modules(type = "r")
 
 # List all installed modules
 list_snippet_modules(installed_only = TRUE)
 
-# List modules from package
+# List modules from package only
 list_snippet_modules(source = "package")
+
+# List modules from GitHub (requires configuration)
+options(snippets.github.repo = "user/snippet-collection")
+list_snippet_modules(source = "github", type = "r")
+
+# List modules from URLs (requires configuration)
+options(snippets.module.urls = c("https://example.com/dplyr-r.snippets"))
+list_snippet_modules(source = "url", type = "r")
 }}
 }
 \concept{snippet modules}

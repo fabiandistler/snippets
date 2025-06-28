@@ -13,6 +13,23 @@
 
 # Helper Functions --------------------------------------------------------
 
+#' Download file from URL
+#'
+#' @param url URL to download from
+#' @param dest_path Local destination path
+#' @return Logical indicating success
+#' @noRd
+download_from_url <- function(url, dest_path) {
+  tryCatch({
+    utils::download.file(url, dest_path, mode = "wb", quiet = TRUE)
+    TRUE
+  }, error = function(e) {
+    usethis::ui_warn("Failed to download from URL {url}: {e$message}")
+    FALSE
+  })
+}
+
+
 #' Get path to snippet modules directory
 #'
 #' @return Path to the snippet modules directory
@@ -178,14 +195,17 @@ compose_snippet_modules <- function(modules, type, output_path) {
 #'
 #' @examples
 #' \dontrun{\donttest{
-#' # List all available R modules
+#' # List all available R modules from all sources
 #' list_snippet_modules(type = "r")
 #' 
 #' # List all installed modules
 #' list_snippet_modules(installed_only = TRUE)
 #' 
-#' # List modules from package
+#' # List modules from package only
 #' list_snippet_modules(source = "package")
+#' 
+#' # List modules from local source only
+#' list_snippet_modules(source = "local", type = "r")
 #' }}
 list_snippet_modules <- function(type = "all", source = "all", installed_only = FALSE) {
   modules_info <- data.frame(

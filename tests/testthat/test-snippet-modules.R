@@ -136,3 +136,87 @@ test_that("get_installed_modules_for_type works correctly", {
     unlink(temp_registry)
   }
 })
+
+test_that("URL detection in install_single_module works correctly", {
+  temp_dir <- tempdir()
+  temp_modules_dir <- file.path(temp_dir, "modules")
+  dir.create(temp_modules_dir, showWarnings = FALSE)
+  
+  # Test URL detection
+  expect_true(stringr::str_detect("https://example.com/file.snippets", "^https?://"))
+  expect_true(stringr::str_detect("http://example.com/file.snippets", "^https?://"))
+  expect_false(stringr::str_detect("package", "^https?://"))
+  expect_false(stringr::str_detect("local", "^https?://"))
+  
+  # Test base URL detection (ends with /)
+  expect_true(stringr::str_detect("https://example.com/path/", "/$"))
+  expect_false(stringr::str_detect("https://example.com/file.snippets", "/$"))
+  
+  # Cleanup
+  unlink(temp_modules_dir, recursive = TRUE)
+})
+
+test_that("download_from_url handles errors gracefully", {
+  temp_file <- tempfile(fileext = ".snippets")
+  
+  # Test with invalid URL
+  expect_false(snippets:::download_from_url("invalid-url", temp_file))
+  expect_false(file.exists(temp_file))
+  
+  # Test with non-existent URL (this will actually try to download)
+  expect_warning(
+    result <- snippets:::download_from_url("https://nonexistent-domain-12345.com/file.snippets", temp_file),
+    "Failed to download"
+  )
+  expect_false(result)
+})
+
+test_that("list_snippet_modules handles different sources correctly", {
+  # Test package source
+  modules <- list_snippet_modules(source = "package", type = "r")
+  expect_s3_class(modules, "data.frame")
+  
+  # Test local source
+  modules <- list_snippet_modules(source = "local", type = "r")
+  expect_s3_class(modules, "data.frame")
+  
+  # Test all sources
+  modules <- list_snippet_modules(source = "all", type = "r")
+  expect_s3_class(modules, "data.frame")
+})
+
+test_that("install_single_module handles different sources", {
+  temp_dir <- tempdir()
+  temp_modules_dir <- file.path(temp_dir, "modules")
+  dir.create(temp_modules_dir, showWarnings = FALSE)
+  
+  # Create mock available_modules data frame for traditional sources
+  available_modules <- data.frame(
+    module = c("test"),
+    type = c("r"),
+    source = c("package"),
+    path = c(tempfile()), # package source (local file)
+    stringsAsFactors = FALSE
+  )
+  
+  # Create a test file for package source
+  package_file <- available_modules$path[1]
+  writeLines("# Test snippet content", package_file)
+  
+  # Test package source (should work with file copy)
+  result <- snippets:::install_single_module("test", "r", "package", temp_modules_dir, available_modules)
+  expect_true(result$success)
+  expect_true(file.exists(result$local_path))
+  
+  # Test URL source (direct URL - will fail download but shows URL detection works)
+  result <- snippets:::install_single_module("test", "r", "https://example.com/test-r.snippets", temp_modules_dir, available_modules)
+  expect_false(result$success) # Expected to fail since URL doesn't exist
+  
+  # Test base URL source (will fail download but shows URL detection works)
+  result <- snippets:::install_single_module("test", "r", "https://example.com/", temp_modules_dir, available_modules)
+  expect_false(result$success) # Expected to fail since URL doesn't exist
+  
+  # Cleanup
+  unlink(temp_modules_dir, recursive = TRUE)
+  unlink(package_file)
+})

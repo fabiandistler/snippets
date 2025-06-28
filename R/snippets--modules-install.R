@@ -65,9 +65,38 @@ install_all_package_modules <- function(package = "snippets",
 #'
 #' @param modules Character vector of module names to install
 #' @param type Snippet type (e.g., "r", "markdown") or vector of types
-#' @param source Source of modules ("package", "local", "github", "url")
+#' @param source Source of modules ("package", "local") or direct URL
 #' @param backup Create backup before modifying existing snippets
 #' @param force_update Update modules even if already installed
+#'
+#' @details
+#' ## Source Types
+#' 
+#' - **"package"**: Install from R package (default)
+#' - **"local"**: Install from local filesystem
+#' - **URL**: Direct URL to snippet file or base directory
+#' 
+#' ## URL Usage
+#' 
+#' URLs are automatically detected and can be used in several ways:
+#' 
+#' **Direct file URL:**
+#' ```r
+#' install_snippet_modules("dplyr", type = "r",
+#'   source = "https://example.com/dplyr-r.snippets")
+#' ```
+#' 
+#' **Base directory URL (automatically appends module filename):**
+#' ```r
+#' install_snippet_modules("dplyr", type = "r", 
+#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+#' ```
+#' 
+#' **GitHub raw URLs:**
+#' ```r
+#' install_snippet_modules("dplyr", type = "r",
+#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/dplyr-r.snippets")
+#' ```
 #'
 #' @return Invisibly returns list of installation results
 #' @export
@@ -75,11 +104,26 @@ install_all_package_modules <- function(package = "snippets",
 #'
 #' @examples
 #' \dontrun{\donttest{
-#' # Install modules from package
+#' # Install modules from package (default)
 #' install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
 #' 
 #' # Install same modules for multiple types
 #' install_snippet_modules("dplyr", type = c("r", "markdown"))
+#' 
+#' # Install from local files
+#' install_snippet_modules("custom_module", type = "r", source = "local")
+#' 
+#' # Install from direct URL
+#' install_snippet_modules("dplyr", type = "r", 
+#'   source = "https://example.com/dplyr-r.snippets")
+#' 
+#' # Install from GitHub base URL (automatically appends filename)
+#' install_snippet_modules("dplyr", type = "r",
+#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+#' 
+#' # Install multiple modules from same base URL
+#' install_snippet_modules(c("dplyr", "ggplot2"), type = "r",
+#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
 #' 
 #' # Install with backup disabled
 #' install_snippet_modules("tidyr", type = "r", backup = FALSE)
@@ -117,14 +161,17 @@ install_snippet_modules <- function(modules,
     usethis::ui_stop("No modules specified for installation")
   }
   
-  # Validate modules exist
-  available_modules <- list_snippet_modules(type = type, source = source)
-  missing_modules <- setdiff(modules, available_modules$module)
-  
-  if (length(missing_modules) > 0) {
-    usethis::ui_stop(
-      "Module(s) not found: {paste(missing_modules, collapse = ', ')}"
-    )
+  # Validate modules exist (skip for URLs)
+  available_modules <- data.frame()
+  if (!stringr::str_detect(source, "^https?://")) {
+    available_modules <- list_snippet_modules(type = type, source = source)
+    missing_modules <- setdiff(modules, available_modules$module)
+    
+    if (length(missing_modules) > 0) {
+      usethis::ui_stop(
+        "Module(s) not found: {paste(missing_modules, collapse = ', ')}"
+      )
+    }
   }
   
   # Read current registry
@@ -219,44 +266,77 @@ install_snippet_modules <- function(modules,
 #' @noRd
 install_single_module <- function(module, type, source, modules_dir, available_modules) {
   module_filename <- make_module_filename(module, type)
-  
-  # Find source file
-  module_row <- available_modules[
-    available_modules$module == module & 
-    available_modules$type == type & 
-    available_modules$source == source, 
-  ]
-  
-  if (nrow(module_row) == 0) {
-    return(list(
-      success = FALSE,
-      error = paste("Module", module, "not found in", source),
-      local_path = NA
-    ))
-  }
-  
-  source_path <- module_row$path[1]
   local_path <- fs::path(modules_dir, module_filename)
   
-  tryCatch({
-    # Copy file to local modules directory
-    fs::file_copy(source_path, local_path, overwrite = TRUE)
+  # Check if source is a URL
+  if (stringr::str_detect(source, "^https?://")) {
+    # Direct URL source
+    if (stringr::str_detect(source, "/$")) {
+      # Base URL - construct full URL
+      source_url <- paste0(source, module_filename)
+    } else {
+      # Direct file URL
+      source_url <- source
+    }
     
-    usethis::ui_done("Installed module: {crayon::green(module)}")
+    tryCatch({
+      if (!download_from_url(source_url, local_path)) {
+        stop("Failed to download from URL")
+      }
+      
+      usethis::ui_done("Installed module: {crayon::green(module)} from URL")
+      
+      list(
+        success = TRUE,
+        local_path = local_path,
+        source_path = source_url
+      )
+    }, error = function(e) {
+      usethis::ui_oops("Failed to install module {module}: {e$message}")
+      list(
+        success = FALSE,
+        error = e$message,
+        local_path = NA
+      )
+    })
+  } else {
+    # Traditional source (package, local)
+    module_row <- available_modules[
+      available_modules$module == module & 
+      available_modules$type == type & 
+      available_modules$source == source, 
+    ]
     
-    list(
-      success = TRUE,
-      local_path = local_path,
-      source_path = source_path
-    )
-  }, error = function(e) {
-    usethis::ui_oops("Failed to install module {module}: {e$message}")
-    list(
-      success = FALSE,
-      error = e$message,
-      local_path = NA
-    )
-  })
+    if (nrow(module_row) == 0) {
+      return(list(
+        success = FALSE,
+        error = paste("Module", module, "not found in", source),
+        local_path = NA
+      ))
+    }
+    
+    source_path <- module_row$path[1]
+    
+    tryCatch({
+      # Copy file from local filesystem
+      fs::file_copy(source_path, local_path, overwrite = TRUE)
+      
+      usethis::ui_done("Installed module: {crayon::green(module)} from {source}")
+      
+      list(
+        success = TRUE,
+        local_path = local_path,
+        source_path = source_path
+      )
+    }, error = function(e) {
+      usethis::ui_oops("Failed to install module {module}: {e$message}")
+      list(
+        success = FALSE,
+        error = e$message,
+        local_path = NA
+      )
+    })
+  }
 }
 
 #' Remove snippet modules
