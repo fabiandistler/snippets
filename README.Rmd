@@ -71,6 +71,26 @@ snippets::install_snippets_from_package("snippets", type = c("r", "markdown"), b
 ```
 
 
+## Module Installation
+
+Install specific snippet modules for fine-grained control:
+
+```{r eval=FALSE}
+# Install specific modules
+snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+
+# List available modules
+snippets::list_snippet_modules(type = "r")
+
+# Show active modules
+snippets::show_active_modules(type = "r")
+
+# Remove modules
+snippets::remove_snippet_modules("dplyr", type = "r")
+```
+
+See `vignette("module-installation")` for detailed documentation.
+
 ### More Examples
 
 ```{r eval=FALSE}

@@ -1,0 +1,321 @@
+---
+title: "Installing and Managing Snippet Modules"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installing and Managing Snippet Modules}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r setup}
+library(snippets)
+```
+
+# Overview
+
+The `snippets` package provides a powerful module system that allows you to install, manage, and combine individual snippet collections. This modular approach gives you fine-grained control over which snippets are active in your RStudio environment.
+
+## What are Snippet Modules?
+
+Snippet modules are individual `.snippets` files that contain related code snippets. Instead of managing one large snippet file, you can:
+
+- Install specific modules (e.g., just `dplyr` snippets)
+- Combine multiple modules automatically
+- Update individual modules without affecting others
+- Remove modules you no longer need
+
+## Quick Start
+
+### Install Modules
+
+Install one or more snippet modules:
+
+```{r}
+# Install a single module
+install_snippet_modules("dplyr", type = "r")
+
+# Install multiple modules at once
+install_snippet_modules(c("dplyr", "ggplot2", "tidyr"), type = "r")
+
+# Install markdown modules
+install_snippet_modules("markdown", type = "markdown")
+```
+
+### List Available Modules
+
+See what modules are available:
+
+```{r}
+# List all available R modules
+list_snippet_modules(type = "r")
+
+# List all available markdown modules  
+list_snippet_modules(type = "markdown")
+```
+
+### View Installed Modules
+
+Check which modules are currently installed:
+
+```{r}
+# Show active modules for R snippets
+show_active_modules(type = "r")
+
+# Show active modules for markdown snippets
+show_active_modules(type = "markdown")
+```
+
+### Remove Modules
+
+Remove modules you no longer need:
+
+```{r}
+# Remove a single module
+remove_snippet_modules("tidyr", type = "r")
+
+# Remove multiple modules
+remove_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+```
+
+## Detailed Usage
+
+### Installation Options
+
+The `install_snippet_modules()` function provides several options:
+
+```{r}
+install_snippet_modules(
+  modules = c("dplyr", "ggplot2"),  # Modules to install
+  type = "r",                      # Snippet type ("r", "markdown", etc.)
+  source = "package",              # Source ("package", "local", "github", "url")
+  backup = TRUE,                   # Create backup before installation
+  force_update = FALSE             # Force reinstall existing modules
+)
+```
+
+#### Parameters Explained:
+
+- **`modules`**: Character vector of module names to install
+- **`type`**: Snippet type - usually "r" or "markdown"
+- **`source`**: Where to get modules from (currently supports "package")
+- **`backup`**: Whether to create a backup of existing snippets (recommended)
+- **`force_update`**: Reinstall modules even if already installed
+
+### Force Updates
+
+If you want to update existing modules:
+
+```{r}
+# Force update an existing module
+install_snippet_modules("dplyr", type = "r", force_update = TRUE)
+```
+
+### Working Without Backups
+
+To skip backup creation (not recommended):
+
+```{r}
+install_snippet_modules("ggplot2", type = "r", backup = FALSE)
+```
+
+## How Module Installation Works
+
+When you install modules, the system:
+
+1. **Validates** that requested modules exist
+2. **Creates a backup** of your current snippets (if enabled)
+3. **Copies module files** to a local module directory
+4. **Updates the registry** to track installed modules
+5. **Recomposes** your main snippet file by combining all installed modules
+6. **Notifies you** to restart RStudio for changes to take effect
+
+### Module Registry
+
+The package maintains a registry of installed modules that tracks:
+
+- Module name and type
+- Installation date
+- Source location
+- File paths
+
+This registry ensures consistent module management across sessions.
+
+### File Composition
+
+Your main snippet file (e.g., `r.snippets`) is automatically composed from all installed modules. Each time you install or remove modules, this file is regenerated.
+
+## Available Modules
+
+The package comes with several built-in modules:
+
+### R Modules
+
+- **`dplyr`**: Data manipulation snippets (`filter`, `mutate`, `summarise`, etc.)
+- **`ggplot2`**: Plotting snippets (`ggplot`, `geom_*`, `theme_*`, etc.)
+- **`plotly`**: Interactive plotting snippets
+- **`data-types`**: R data type and structure snippets
+
+### Markdown Modules
+
+- **`markdown`**: Basic markdown syntax snippets
+- **`rmd`**: R Markdown specific snippets
+- **`qmd`**: Quarto document snippets
+
+You can see the complete list with:
+
+```{r}
+# All available modules
+list_snippet_modules()
+```
+
+## Best Practices
+
+### 1. Always Use Backups
+
+Keep backup creation enabled (the default):
+
+```{r}
+# Good - creates backup
+install_snippet_modules("dplyr", type = "r", backup = TRUE)
+```
+
+### 2. Install Related Modules Together
+
+Install related modules in one call for better organization:
+
+```{r}
+# Install tidyverse-related modules together
+install_snippet_modules(c("dplyr", "ggplot2", "tidyr", "purrr"), type = "r")
+```
+
+### 3. Regular Module Maintenance
+
+Periodically review and clean up your installed modules:
+
+```{r}
+# Check what's installed
+show_active_modules(type = "r")
+
+# Remove unused modules
+remove_snippet_modules("old_module", type = "r")
+```
+
+### 4. Restart RStudio
+
+Always restart RStudio after installing or removing modules for changes to take effect.
+
+## Troubleshooting
+
+### Module Not Found
+
+If you get a "Module not found" error:
+
+```{r}
+# Check available modules
+list_snippet_modules(type = "r")
+
+# Make sure you're using the correct module name
+```
+
+### RStudio Not Recognizing Changes
+
+If snippets don't appear after installation:
+
+1. **Restart RStudio completely** (close and reopen)
+2. Check that the snippet file was created:
+
+```{r}
+# Check if file exists
+file.exists(path_rstudio_snippets_file(type = "r"))
+```
+
+### Permission Issues
+
+If you encounter permission errors:
+
+- Make sure RStudio is closed during installation
+- Run R with appropriate permissions
+- Check that the RStudio snippets directory is writable
+
+### Backup Warnings
+
+If you see backup warnings when running outside RStudio, this is normal. The package detects when it's not running in RStudio and adjusts accordingly.
+
+## Integration with Other Functions
+
+Module installation works seamlessly with other package functions:
+
+```{r}
+# After installing modules, you can:
+
+# Open the snippet directory
+open_rstudio_snippets_dir()
+
+# Edit the main snippet file
+open_rstudio_snippets_file(type = "r")
+
+# Manage backups
+list_snippet_file_backups(type = "r")
+```
+
+## Examples
+
+### Complete Workflow Example
+
+Here's a complete example of module management:
+
+```{r}
+# 1. Check what's currently installed
+show_active_modules(type = "r")
+
+# 2. See what modules are available
+available <- list_snippet_modules(type = "r")
+print(available$module)
+
+# 3. Install specific modules
+install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+
+# 4. Verify installation
+show_active_modules(type = "r")
+
+# 5. Later, add more modules
+install_snippet_modules("plotly", type = "r")
+
+# 6. Remove a module you don't need
+remove_snippet_modules("plotly", type = "r")
+
+# 7. Check final state
+show_active_modules(type = "r")
+```
+
+### Setting Up a New RStudio Installation
+
+For a fresh RStudio setup:
+
+```{r}
+# Install essential R modules
+install_snippet_modules(
+  modules = c("dplyr", "ggplot2", "data-types"),
+  type = "r"
+)
+
+# Install markdown modules
+install_snippet_modules(
+  modules = c("markdown", "rmd"),
+  type = "markdown"
+)
+
+# Verify installation
+show_active_modules(type = "r")
+show_active_modules(type = "markdown")
+```
+
+Remember to restart RStudio after installation for all snippets to become available!

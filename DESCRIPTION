@@ -35,8 +35,11 @@ Imports:
   withr
 RoxygenNote: 7.3.2
 Suggests: 
-  covr,
-  bookdown,
-  whoami,
-  testthat (>= 2.1.0)
+    covr,
+    bookdown,
+    whoami,
+    testthat (>= 2.1.0),
+    knitr,
+    rmarkdown
 RdMacros: lifecycle
+VignetteBuilder: knitr
