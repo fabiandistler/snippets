@@ -17,7 +17,7 @@ install_snippet_modules(
 
 \item{type}{Snippet type (e.g., "r", "markdown") or vector of types}
 
-\item{source}{Source of modules ("package", "local", "github", "url")}
+\item{source}{Source of modules ("package", "local") or direct URL}
 
 \item{backup}{Create backup before modifying existing snippets}
 
@@ -35,36 +35,30 @@ snippet file that RStudio reads.
 \itemize{
 \item \strong{"package"}: Install from R package (default)
 \item \strong{"local"}: Install from local filesystem
-\item \strong{"github"}: Install from GitHub repository (requires configuration)
-\item \strong{"url"}: Install from direct URLs (requires configuration)
+\item \strong{URL}: Direct URL to snippet file or base directory
 }
 }
 
-\subsection{GitHub Configuration}{
+\subsection{URL Usage}{
 
-For GitHub sources, set the repository via:
+URLs are automatically detected and can be used in several ways:
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(snippets.github.repo = "user/repo")
-# or
-Sys.setenv(SNIPPETS_GITHUB_REPO = "user/repo")
+\strong{Direct file URL:}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r",
+  source = "https://example.com/dplyr-r.snippets")
 }\if{html}{\out{</div>}}
 
-Advanced GitHub specifications:
-\itemize{
-\item \code{"user/repo"} - use main branch, inst/snippets/ path
-\item \code{"user/repo@branch"} - use specific branch
-\item \code{"user/repo@branch/path/to/snippets"} - custom path
-}
-}
+\strong{Base directory URL (automatically appends module filename):}
 
-\subsection{URL Configuration}{
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r", 
+  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+}\if{html}{\out{</div>}}
 
-For URL sources, set module URLs via:
+\strong{GitHub raw URLs:}
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{options(snippets.module.urls = c("https://example.com/module1-r.snippets", 
-                                 "https://example.com/module2-r.snippets"))
-# or
-Sys.setenv(SNIPPETS_MODULE_URLS = "url1,url2")
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r",
+  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/dplyr-r.snippets")
 }\if{html}{\out{</div>}}
 }
 }
@@ -79,13 +73,17 @@ install_snippet_modules("dplyr", type = c("r", "markdown"))
 # Install from local files
 install_snippet_modules("custom_module", type = "r", source = "local")
 
-# Install from GitHub (requires configuration)
-options(snippets.github.repo = "user/snippet-collection")
-install_snippet_modules("dplyr", type = "r", source = "github")
+# Install from direct URL
+install_snippet_modules("dplyr", type = "r", 
+  source = "https://example.com/dplyr-r.snippets")
 
-# Install from URLs (requires configuration)
-options(snippets.module.urls = c("https://example.com/dplyr-r.snippets"))
-install_snippet_modules("dplyr", type = "r", source = "url")
+# Install from GitHub base URL (automatically appends filename)
+install_snippet_modules("dplyr", type = "r",
+  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+
+# Install multiple modules from same base URL
+install_snippet_modules(c("dplyr", "ggplot2"), type = "r",
+  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
 
 # Install with backup disabled
 install_snippet_modules("tidyr", type = "r", backup = FALSE)
