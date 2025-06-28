@@ -2,13 +2,69 @@
 # Snippet Module Installation -------------------------------------------- ====
 # ======================================================================== ~~~~
 
+#' Install all available modules from a package
+#'
+#' Convenience function to install all available snippet modules from a package
+#' without having to specify individual module names.
+#'
+#' @param package Package name to install modules from
+#' @param type Snippet type (e.g., "r", "markdown") or "all" for all types
+#' @param backup Create backup before modifying existing snippets
+#'
+#' @return Invisibly returns list of installation results
+#' @export
+#' @concept snippet modules
+#'
+#' @examples
+#' \dontrun{\donttest{
+#' # Install all R modules from package
+#' install_all_package_modules("snippets", type = "r")
+#' 
+#' # Install all modules of all types
+#' install_all_package_modules("snippets", type = "all")
+#' }}
+install_all_package_modules <- function(package = "snippets", 
+                                       type = "r", 
+                                       backup = TRUE) {
+  
+  if (type == "all") {
+    available_types <- get_default_snippet_types()
+  } else {
+    available_types <- match_snippet_type(type, several.ok = TRUE)
+  }
+  
+  results <- list()
+  
+  for (current_type in available_types) {
+    available_modules <- list_snippet_modules(
+      type = current_type, 
+      source = "package"
+    )
+    
+    if (nrow(available_modules) > 0) {
+      usethis::ui_info("Installing all {current_type} modules from package '{package}'")
+      
+      results[[current_type]] <- install_snippet_modules(
+        modules = available_modules$module,
+        type = current_type,
+        source = "package",
+        backup = backup
+      )
+    } else {
+      usethis::ui_info("No {current_type} modules found in package '{package}'")
+    }
+  }
+  
+  invisible(results)
+}
+
 #' Install snippet modules
 #'
 #' Install one or more snippet modules and compose them into the active
 #' snippet file that RStudio reads.
 #'
 #' @param modules Character vector of module names to install
-#' @param type Snippet type (e.g., "r", "markdown")
+#' @param type Snippet type (e.g., "r", "markdown") or vector of types
 #' @param source Source of modules ("package", "local", "github", "url")
 #' @param backup Create backup before modifying existing snippets
 #' @param force_update Update modules even if already installed
@@ -22,6 +78,9 @@
 #' # Install modules from package
 #' install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
 #' 
+#' # Install same modules for multiple types
+#' install_snippet_modules("dplyr", type = c("r", "markdown"))
+#' 
 #' # Install with backup disabled
 #' install_snippet_modules("tidyr", type = "r", backup = FALSE)
 #' 
@@ -34,7 +93,25 @@ install_snippet_modules <- function(modules,
                                    backup = TRUE,
                                    force_update = FALSE) {
   
-  type <- match_snippet_type(type, several.ok = FALSE)
+  types <- match_snippet_type(type, several.ok = TRUE)
+  
+  # Handle multiple types by calling recursively
+  if (length(types) > 1) {
+    results <- list()
+    for (single_type in types) {
+      results[[single_type]] <- install_snippet_modules(
+        modules = modules,
+        type = single_type,
+        source = source,
+        backup = backup,
+        force_update = force_update
+      )
+    }
+    return(invisible(results))
+  }
+  
+  # Single type processing (original logic)
+  type <- types[1]
   
   if (length(modules) == 0) {
     usethis::ui_stop("No modules specified for installation")

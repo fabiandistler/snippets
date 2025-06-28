@@ -54,30 +54,19 @@ remotes::install_github("GegznaV/snippets")
 
 ## Quickstart
 
-
-### Install Snippets from "snippets"
-
-
-```{r eval=FALSE}
-# Replace current files with snippets with those in package "snippets"
-# (backup copies are created by default)
-snippets::install_snippets_from_package("snippets")
-```
-
-
-```{r, include=FALSE, eval=FALSE}
-# Replace current R and Markdown snippets with those in package "snippets"
-snippets::install_snippets_from_package("snippets", type = c("r", "markdown"), backup = TRUE)
-```
-
-
-## Module Installation
+### Module Installation (Recommended)
 
 Install specific snippet modules for fine-grained control:
 
 ```{r eval=FALSE}
-# Install specific modules
+# Install all available modules from package
+snippets::install_all_package_modules("snippets", type = "r")
+
+# Or install specific modules
 snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+
+# Install for multiple types at once
+snippets::install_snippet_modules("dplyr", type = c("r", "markdown"))
 
 # List available modules
 snippets::list_snippet_modules(type = "r")
@@ -108,8 +97,8 @@ open_rstudio_snippets_dir()
 ```
 
 ```{r eval=FALSE}
-# Replace your R and Markdown snippets with those in package "snippets"
-install_snippets_from_package("snippets", type = c("r", "markdown"), backup = TRUE)
+# Install all R and Markdown snippets using the module system
+install_all_package_modules("snippets", type = c("r", "markdown"))
 list_snippet_file_backups()
 ```
 

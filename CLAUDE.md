@@ -89,33 +89,29 @@ The package is organized into several functional modules:
 
 ## Working with Snippets
 
-### Installing Snippets
-The main workflow involves installing snippet files from the package to the user's RStudio configuration:
+### Installing Snippets (Module System - Recommended)
+The primary workflow uses the modular snippet management system:
 
 ```r
-# Install all available snippets (traditional method)
-snippets::install_snippets_from_package("snippets")
+# Install all available modules from package (recommended)
+snippets::install_all_package_modules("snippets", type = "r")
+snippets::install_all_package_modules("snippets", type = "all")
 
-# Install specific types
-snippets::install_snippets_from_package("snippets", type = c("r", "markdown"))
-```
+# Or install specific modules
+snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
 
-### Working with Snippet Modules
-The package now supports modular snippet management:
+# Install same modules for multiple types
+snippets::install_snippet_modules("dplyr", type = c("r", "markdown"))
 
-```r
 # List available modules
 snippets::list_snippet_modules(type = "r")
 snippets::list_snippet_modules(type = "all")
-
-# Install specific modules
-snippets::install_snippet_modules(modules = c("dplyr", "ggplot2"), type = "r")
 
 # Show currently active modules
 snippets::show_active_modules(type = "r")
 
 # Remove modules
-snippets::remove_snippet_modules(modules = c("dplyr"), type = "r")
+snippets::remove_snippet_modules(c("dplyr"), type = "r")
 ```
 
 ### RStudio Integration

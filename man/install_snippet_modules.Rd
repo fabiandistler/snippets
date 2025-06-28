@@ -15,7 +15,7 @@ install_snippet_modules(
 \arguments{
 \item{modules}{Character vector of module names to install}
 
-\item{type}{Snippet type (e.g., "r", "markdown")}
+\item{type}{Snippet type (e.g., "r", "markdown") or vector of types}
 
 \item{source}{Source of modules ("package", "local", "github", "url")}
 
@@ -34,6 +34,9 @@ snippet file that RStudio reads.
 \dontrun{\donttest{
 # Install modules from package
 install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+
+# Install same modules for multiple types
+install_snippet_modules("dplyr", type = c("r", "markdown"))
 
 # Install with backup disabled
 install_snippet_modules("tidyr", type = "r", backup = FALSE)

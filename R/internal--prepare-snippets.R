@@ -18,7 +18,7 @@
 #' merge_snippets(type = "r", in_dir = snippets_dir)
 #' merge_snippets(type = "markdown", in_dir = snippets_dir)
 #'
-#' install_snippets_from_dir(type = c("r", "markdown"), from_dir = snippets_dir)
+#' # Traditional method no longer available - use module system instead
 #' #
 #' merge_snippets(type = "r", in_dir = snippets_dir, rm = "-VG-snippets")
 #' merge_snippets(type = "markdown", in_dir = snippets_dir, rm = "-VG-snippets")
@@ -26,8 +26,7 @@
 #' update_snippets_in_snippets("r")
 #' update_snippets_in_snippets("markdown")
 #'
-#' # install_snippets_from_dir(type = "r",        from_dir = snippets_dir)
-#' # install_snippets_from_dir(type = "markdown", from_dir = snippets_dir)
+#' # Traditional method no longer available - use module system instead
 merge_snippets <- function(
     type = get_default_snippet_types(), in_dir = ".",
     rm = NULL) {
@@ -92,7 +91,8 @@ update_snippets_in_snippets <- function(type, snippets_dir = "snippets") {
 #' }
 merge_and_update_snippets <- function(type, snippets_dir = "snippets/") {
   merge_snippets(type = type, in_dir = snippets_dir)
-  install_snippets_from_dir(type = type, from_dir = snippets_dir)
+  # TODO: Replace with module system installation when ready
+  usethis::ui_info("Function merge_and_update_snippets() needs update for module system")
 
   # Remove personal VG snippets
   merge_snippets(type = type, in_dir = snippets_dir, rm = "-VG-snippets")
