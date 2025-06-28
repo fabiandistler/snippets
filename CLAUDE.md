@@ -108,3 +108,7 @@ GitHub Actions workflows handle:
 - **drat--publish-package**: Publishes package to custom repository
 
 All workflows are triggered on pushes to main branches and pull requests.
+
+## Workflow Guidelines
+
+- You only work on my fork and all PRs go to my fork. Never try to push or PR to GegznaV's repo unless I tell you to do it.
