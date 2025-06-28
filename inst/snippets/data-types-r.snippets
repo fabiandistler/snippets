@@ -1,0 +1,31 @@
+snippet help-data-types
+	# The abbreviations (used in the Tidyverse) of the most common R data types:
+	#     <fct>  -- nominal (categorical; factor);
+	#     <ord>  -- ordinal;
+	#     <int>  -- numeric: (integer);
+	#     <dbl>  -- numeric: real numbers (double);
+	#     <lgl>  -- logical;
+	#     <chr>  -- text, strings (character);
+	#     <date> -- dates;
+	#     <dttm> -- dates and times;
+	#     <list> -- list column (more complex data structures than usual vectors).
+	#
+	#     Other data types are also possible.
+
+snippet is-character
+	is.character(${1:x})${0}
+
+snippet is-numeric
+	is.numeric(${1:x})${0}
+
+snippet is-logical
+	is.logical(${1:x})${0}
+
+snippet as-character
+	as.character(${1:x})${0}
+
+snippet as-numeric
+	as.numeric(${1:x})${0}
+
+snippet as-logical
+	as.logical(${1:x})${0}

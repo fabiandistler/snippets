@@ -1,0 +1,26 @@
+snippet mutate
+	${1:data} |>
+	  dplyr::mutate(${2:new_var} = ${3})${0}
+
+snippet filter
+	${1:data} |>
+	  dplyr::filter(${2:condition})${0}
+
+snippet select
+	${1:data} |>
+	  dplyr::select(${2:columns})${0}
+
+snippet summarise
+	${1:data} |>
+	  dplyr::summarise(${2:stat} = ${3:function(variable)})${0}
+
+snippet group-by
+	${1:data} |>
+	  dplyr::group_by(${2:grouping_var})${0}
+
+snippet arrange
+	${1:data} |>
+	  dplyr::arrange(${2:column})${0}
+
+snippet pipe
+	|> ${0}

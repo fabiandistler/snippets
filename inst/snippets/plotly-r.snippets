@@ -1,0 +1,26 @@
+snippet plotly-scatter-3d
+	${1:data} |>
+	  plotly::plot_ly(
+	    x = ~${2:x}, y = ~${3:y}, z = ~${4:z}, ${5:color = ~${6:group}},
+	    marker = list(opacity = 0.8, size = 3)
+	  ) %>%
+	  plotly::add_markers() %>%
+	  plotly::layout(title = "${7:3D plot}")${0}
+
+snippet plotly-scatter
+	${1:data} |>
+	  plotly::plot_ly(x = ~${2:x}, y = ~${3:y}, ${4:color = ~${5:group}}) |>
+	  plotly::add_markers() |>
+	  plotly::layout(title = "${6:Scatter plot}")${0}
+
+snippet plotly-line
+	${1:data} |>
+	  plotly::plot_ly(x = ~${2:x}, y = ~${3:y}, ${4:color = ~${5:group}}) |>
+	  plotly::add_lines() |>
+	  plotly::layout(title = "${6:Line plot}")${0}
+
+snippet plotly-histogram
+	${1:data} |>
+	  plotly::plot_ly(x = ~${2:x}) |>
+	  plotly::add_histogram() |>
+	  plotly::layout(title = "${3:Histogram}")${0}
