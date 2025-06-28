@@ -91,8 +91,16 @@ update_snippets_in_snippets <- function(type, snippets_dir = "snippets") {
 #' }
 merge_and_update_snippets <- function(type, snippets_dir = "snippets/") {
   merge_snippets(type = type, in_dir = snippets_dir)
-  # TODO: Replace with module system installation when ready
-  usethis::ui_info("Function merge_and_update_snippets() needs update for module system")
+  
+  # Install using module system - install all available modules
+  # This replaces the old install_snippets_from_dir() call
+  tryCatch({
+    install_all_package_modules("snippets", type = type, backup = TRUE)
+    usethis::ui_done("Installed all {type} modules using module system")
+  }, error = function(e) {
+    usethis::ui_warn("Module installation failed: {e$message}")
+    usethis::ui_info("Continuing with manual file updates...")
+  })
 
   # Remove personal VG snippets
   merge_snippets(type = type, in_dir = snippets_dir, rm = "-VG-snippets")

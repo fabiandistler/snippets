@@ -45,29 +45,25 @@ The package uses `testthat` framework for testing. Test files are located in `te
 ### Core Functionality
 The package is organized into several functional modules:
 
-1. **Snippet Installation** (`R/snippets--install.R`): 
-   - Functions to install snippets from packages or directories
-   - `install_snippets_from_package()` and `install_snippets_from_dir()` are main entry points
-
-2. **Modular Snippet Management** (`R/snippets--modules.R`, `R/snippets--modules-install.R`):
-   - NEW: Manage snippet modules with naming convention `{module}-{type}.snippets`
+1. **Modular Snippet Management** (`R/snippets--modules.R`, `R/snippets--modules-install.R`):
+   - Manage snippet modules with naming convention `{module}-{type}.snippets`
    - Install, remove, and compose modular snippet collections
    - Registry system to track installed modules
-   - Functions: `list_snippet_modules()`, `show_active_modules()`, `install_snippet_modules()`, `remove_snippet_modules()`
+   - Functions: `list_snippet_modules()`, `show_active_modules()`, `install_snippet_modules()`, `remove_snippet_modules()`, `install_all_package_modules()`
 
-3. **File and Directory Management** (`R/snippets--files-and-dirs.R`, `R/snippets--files-and-dirs--internal.R`):
+2. **File and Directory Management** (`R/snippets--files-and-dirs.R`, `R/snippets--files-and-dirs--internal.R`):
    - Functions to locate RStudio snippet directories and files
    - Cross-platform path handling for different RStudio versions
 
-4. **Backup System** (`R/snippets--backup.R`):
+3. **Backup System** (`R/snippets--backup.R`):
    - Create and manage backups of existing snippet files before replacement
    - Uses `backup.tools` package for backup functionality
 
-5. **Snippet Type Management** (`R/snippets--snippet-types.R`):
+4. **Snippet Type Management** (`R/snippets--snippet-types.R`):
    - Functions to validate and match snippet types (r, markdown, etc.)
    - Type detection and validation logic
 
-6. **Internal Helpers** (`R/internal--*.R`):
+5. **Internal Helpers** (`R/internal--*.R`):
    - Utility functions for snippet preparation and internal operations
 
 ### Key Dependencies

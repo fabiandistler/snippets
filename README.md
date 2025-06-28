@@ -1,5 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
 <!-- badges: start -->
 
 [![CRAN
@@ -12,7 +13,7 @@ status](https://github.com/GegznaV/snippets/workflows/R-CMD-check/badge.svg)](ht
 coverage](https://codecov.io/gh/GegznaV/snippets/branch/master/graph/badge.svg)](https://codecov.io/gh/GegznaV/snippets?branch=master)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![Updated-on](https://img.shields.io/badge/Updated%20on-2024--09--18-yellowgreen.svg)]()
+[![Updated-on](https://img.shields.io/badge/Updated%20on-2025--06--28-yellowgreen.svg)]()
 <!-- badges: end -->
 
 # Package `snippets`
@@ -22,8 +23,11 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 ## Installation
 
 <!-- You can install the released version of snippets from [CRAN](https://CRAN.R-project.org) with: -->
+
 <!-- ``` r -->
+
 <!-- install.packages("snippets") -->
+
 <!-- ``` -->
 
 To install package from CRAN-like repository:
@@ -42,13 +46,31 @@ remotes::install_github("GegznaV/snippets")
 
 ## Quickstart
 
-### Install Snippets from “snippets”
+### Module Installation (Recommended)
+
+Install specific snippet modules for fine-grained control:
 
 ``` r
-# Replace current files with snippets with those in package "snippets"
-# (backup copies are created by default)
-snippets::install_snippets_from_package("snippets")
+# Install all available modules from package
+snippets::install_all_package_modules("snippets", type = "r")
+
+# Or install specific modules
+snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+
+# Install for multiple types at once
+snippets::install_snippet_modules("dplyr", type = c("r", "markdown"))
+
+# List available modules
+snippets::list_snippet_modules(type = "r")
+
+# Show active modules
+snippets::show_active_modules(type = "r")
+
+# Remove modules
+snippets::remove_snippet_modules("dplyr", type = "r")
 ```
+
+See `vignette("module-installation")` for detailed documentation.
 
 ### More Examples
 
@@ -67,8 +89,8 @@ open_rstudio_snippets_dir()
 ```
 
 ``` r
-# Replace your R and Markdown snippets with those in package "snippets"
-install_snippets_from_package("snippets", type = c("r", "markdown"), backup = TRUE)
+# Install all R and Markdown snippets using the module system
+install_all_package_modules("snippets", type = c("r", "markdown"))
 list_snippet_file_backups()
 ```
 
@@ -154,4 +176,4 @@ remove_snippet_backup_duplicates()
     <!-- 4. [R snippets](https://github.com/dick7/vimrc/blob/81a78437c9d6f45c3372e6998f4a8a832890c243/sources_non_forked/vim-snippets/snippets/r.snippets) by @dick7 -->
     <!-- 5. [markdown snippets](https://github.com/dick7/vimrc/blob/81a78437c9d6f45c3372e6998f4a8a832890c243/sources_non_forked/vim-snippets/snippets/markdown.snippets) by @dick7 -->
 
-<!-- <div style="text-align:right;">2024-09-18</div> -->
+<!-- <div style="text-align:right;">2025-06-28</div> -->
