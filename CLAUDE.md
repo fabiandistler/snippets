@@ -49,19 +49,25 @@ The package is organized into several functional modules:
    - Functions to install snippets from packages or directories
    - `install_snippets_from_package()` and `install_snippets_from_dir()` are main entry points
 
-2. **File and Directory Management** (`R/snippets--files-and-dirs.R`, `R/snippets--files-and-dirs--internal.R`):
+2. **Modular Snippet Management** (`R/snippets--modules.R`, `R/snippets--modules-install.R`):
+   - NEW: Manage snippet modules with naming convention `{module}-{type}.snippets`
+   - Install, remove, and compose modular snippet collections
+   - Registry system to track installed modules
+   - Functions: `list_snippet_modules()`, `show_active_modules()`, `install_snippet_modules()`, `remove_snippet_modules()`
+
+3. **File and Directory Management** (`R/snippets--files-and-dirs.R`, `R/snippets--files-and-dirs--internal.R`):
    - Functions to locate RStudio snippet directories and files
    - Cross-platform path handling for different RStudio versions
 
-3. **Backup System** (`R/snippets--backup.R`):
+4. **Backup System** (`R/snippets--backup.R`):
    - Create and manage backups of existing snippet files before replacement
    - Uses `backup.tools` package for backup functionality
 
-4. **Snippet Type Management** (`R/snippets--snippet-types.R`):
+5. **Snippet Type Management** (`R/snippets--snippet-types.R`):
    - Functions to validate and match snippet types (r, markdown, etc.)
    - Type detection and validation logic
 
-5. **Internal Helpers** (`R/internal--*.R`):
+6. **Internal Helpers** (`R/internal--*.R`):
    - Utility functions for snippet preparation and internal operations
 
 ### Key Dependencies
@@ -69,13 +75,17 @@ The package is organized into several functional modules:
 - `fs`, `usethis`: File system operations and user interface
 - `rstudioapi`: RStudio integration
 - `dplyr`, `purrr`, `stringr`: Data manipulation and string operations
+- `jsonlite`: JSON handling for module registry
+- `readr`: Reading and writing files
 
 ### Package Structure
 - `R/`: Main source code with thematic file organization
 - `inst/snippets/`: Contains the actual snippet files distributed with the package
+  - Module files follow convention: `{module}-{type}.snippets` (e.g., `dplyr-r.snippets`, `ggplot2-r.snippets`)
 - `tests/testthat/`: Unit tests
 - `man/`: Generated documentation files
 - `snippets/`: Additional snippet collection (excluded from build via `.Rbuildignore`)
+- `new-features/`: Development and experimental features
 
 ## Working with Snippets
 
@@ -83,11 +93,29 @@ The package is organized into several functional modules:
 The main workflow involves installing snippet files from the package to the user's RStudio configuration:
 
 ```r
-# Install all available snippets
+# Install all available snippets (traditional method)
 snippets::install_snippets_from_package("snippets")
 
 # Install specific types
 snippets::install_snippets_from_package("snippets", type = c("r", "markdown"))
+```
+
+### Working with Snippet Modules
+The package now supports modular snippet management:
+
+```r
+# List available modules
+snippets::list_snippet_modules(type = "r")
+snippets::list_snippet_modules(type = "all")
+
+# Install specific modules
+snippets::install_snippet_modules(modules = c("dplyr", "ggplot2"), type = "r")
+
+# Show currently active modules
+snippets::show_active_modules(type = "r")
+
+# Remove modules
+snippets::remove_snippet_modules(modules = c("dplyr"), type = "r")
 ```
 
 ### RStudio Integration
@@ -99,6 +127,12 @@ The package integrates with RStudio through:
 ### Backup System
 The package automatically creates backups before modifying existing snippet files, using timestamped filenames for backup copies.
 
+### Module Registry
+The modular system uses a JSON registry (`module_registry.json`) to track installed modules, including:
+- Installation date and source
+- Module composition and dependencies
+- Allows for selective installation and removal of snippet collections
+
 ## CI/CD
 
 GitHub Actions workflows handle:
@@ -108,3 +142,7 @@ GitHub Actions workflows handle:
 - **drat--publish-package**: Publishes package to custom repository
 
 All workflows are triggered on pushes to main branches and pull requests.
+
+## Workflow Guidelines
+
+- You only work on my fork and all PRs go to my fork. Never try to push or PR to GegznaV's repo unless I tell you to do it.

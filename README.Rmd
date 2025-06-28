@@ -71,6 +71,26 @@ snippets::install_snippets_from_package("snippets", type = c("r", "markdown"), b
 ```
 
 
+## Module Installation
+
+Install specific snippet modules for fine-grained control:
+
+```{r eval=FALSE}
+# Install specific modules
+snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+
+# List available modules
+snippets::list_snippet_modules(type = "r")
+
+# Show active modules
+snippets::show_active_modules(type = "r")
+
+# Remove modules
+snippets::remove_snippet_modules("dplyr", type = "r")
+```
+
+See `vignette("module-installation")` for detailed documentation.
+
 ### More Examples
 
 ```{r eval=FALSE}
@@ -133,7 +153,7 @@ remove_snippet_backup_duplicates()
 
 1. List all back-up files and select the one of interest.
     ```{r eval=FALSE}
-    list_snippet_file_backups(type = "r")
+list_snippet_file_backups(type = "r")
     ```
     ```r
     #> c:/.R/snippets/r.snippets
@@ -142,7 +162,7 @@ remove_snippet_backup_duplicates()
     ```
 2. Restore the back-up of interest, e.g.:
     ```{r eval=FALSE}
-    restore_snippets_from_backup("r.snippets--backup-2019-10-31-015042")
+restore_snippets_from_backup("r.snippets--backup-2019-10-31-015042")
     ```
     ```r
     #> v Back-up file was found: 'r.snippets--backup-2019-10-31-015042'
