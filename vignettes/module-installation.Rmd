@@ -57,7 +57,7 @@ See what modules are available:
 # List all available R modules
 list_snippet_modules(type = "r")
 
-# List all available markdown modules  
+# List all available markdown modules
 list_snippet_modules(type = "markdown")
 ```
 
@@ -93,11 +93,11 @@ The `install_snippet_modules()` function provides several options:
 
 ```{r}
 install_snippet_modules(
-  modules = c("dplyr", "ggplot2"),  # Modules to install
-  type = "r",                      # Snippet type ("r", "markdown", etc.)
-  source = "package",              # Source ("package", "local", "github", "url")
-  backup = TRUE,                   # Create backup before installation
-  force_update = FALSE             # Force reinstall existing modules
+  modules = c("dplyr", "ggplot2"), # Modules to install
+  type = "r", # Snippet type ("r", "markdown", etc.)
+  source = "package", # Source ("package", "local", "github", "url")
+  backup = TRUE, # Create backup before installation
+  force_update = FALSE # Force reinstall existing modules
 )
 ```
 

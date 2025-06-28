@@ -14,5 +14,17 @@ Get default snippet types
 }
 \examples{
 get_default_snippet_types()
+#  "r.snippets",
+#  "markdown.snippets",
+#  "c_cpp.snippets",
+#  "css.snippets",
+#  "html.snippets",
+#  "java.snippets",
+#  "javascript.snippets",
+#  "python.snippets",
+#  "sql.snippets",
+#  "stan.snippets",
+#  "tex.snippets"
+#  stringr::str_extract(".*(?=\.snippets)")
 }
 \concept{snippet types}

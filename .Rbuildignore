@@ -14,3 +14,6 @@
 ^_TODO
 ^\.github$
 ^new-features$
+^dev$
+^.claude$
+^CLAUDE\.md$
