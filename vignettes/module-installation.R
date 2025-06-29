@@ -53,7 +53,7 @@ knitr::opts_chunk$set(
 # install_snippet_modules("dplyr", type = "r", force_update = TRUE)
 
 ## -----------------------------------------------------------------------------
-# install_snippet_modules("ggplot2", type = "r", backup = FALSE)
+# install_snippet_modules("ggplot2", backup = FALSE)
 
 ## -----------------------------------------------------------------------------
 # # All available modules
@@ -61,7 +61,7 @@ knitr::opts_chunk$set(
 
 ## -----------------------------------------------------------------------------
 # # Good - creates backup
-# install_snippet_modules("dplyr", type = "r", backup = TRUE)
+# install_snippet_modules("dplyr", backup = TRUE)
 
 ## -----------------------------------------------------------------------------
 # # Install tidyverse-related modules together
@@ -105,13 +105,13 @@ knitr::opts_chunk$set(
 # print(available$module)
 # 
 # # 3. Install specific modules
-# install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+# install_snippet_modules(c("dplyr", "ggplot2"))
 # 
 # # 4. Verify installation
 # show_active_modules(type = "r")
 # 
 # # 5. Later, add more modules
-# install_snippet_modules("plotly", type = "r")
+# install_snippet_modules("plotly")
 # 
 # # 6. Remove a module you don't need
 # remove_snippet_modules("plotly", type = "r")

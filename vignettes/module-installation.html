@@ -441,18 +441,21 @@ if already installed</li>
 <div id="working-without-backups" class="section level3">
 <h3>Working Without Backups</h3>
 <p>To skip backup creation (not recommended):</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="at">type =</span> <span class="st">&quot;r&quot;</span>, <span class="at">backup =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="at">backup =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 </div>
 </div>
 <div id="how-module-installation-works" class="section level2">
 <h2>How Module Installation Works</h2>
 <p>When you install modules, the system:</p>
 <ol style="list-style-type: decimal">
-<li><strong>Validates</strong> that requested modules exist</li>
+<li><strong>Auto-discovers</strong> available snippet files (if
+modules=NULL)</li>
+<li><strong>Auto-detects</strong> snippet types (if type=NULL)<br />
+</li>
+<li><strong>Auto-detects</strong> source location (local vs URL)</li>
 <li><strong>Creates a backup</strong> of your current snippets (if
 enabled)</li>
-<li><strong>Copies module files</strong> to a local module
-directory</li>
+<li><strong>Downloads/copies</strong> snippet files as needed</li>
 <li><strong>Updates the registry</strong> to track installed
 modules</li>
 <li><strong>Recomposes</strong> your main snippet file by combining all
@@ -517,7 +520,7 @@ snippets</li>
 <h3>1. Always Use Backups</h3>
 <p>Keep backup creation enabled (the default):</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Good - creates backup</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="at">type =</span> <span class="st">&quot;r&quot;</span>, <span class="at">backup =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="at">backup =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
 <div id="install-related-modules-together" class="section level3">
 <h3>2. Install Related Modules Together</h3>
@@ -604,13 +607,13 @@ functions:</p>
 <span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="fu">print</span>(available<span class="sc">$</span>module)</span>
 <span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a></span>
 <span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="co"># 3. Install specific modules</span></span>
-<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="fu">c</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;ggplot2&quot;</span>), <span class="at">type =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="fu">c</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;ggplot2&quot;</span>))</span>
 <span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a></span>
 <span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co"># 4. Verify installation</span></span>
 <span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="fu">show_active_modules</span>(<span class="at">type =</span> <span class="st">&quot;r&quot;</span>)</span>
 <span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a></span>
 <span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co"># 5. Later, add more modules</span></span>
-<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="st">&quot;plotly&quot;</span>, <span class="at">type =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="fu">install_snippet_modules</span>(<span class="st">&quot;plotly&quot;</span>)</span>
 <span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a></span>
 <span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a><span class="co"># 6. Remove a module you don&#39;t need</span></span>
 <span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="fu">remove_snippet_modules</span>(<span class="st">&quot;plotly&quot;</span>, <span class="at">type =</span> <span class="st">&quot;r&quot;</span>)</span>
