@@ -322,7 +322,7 @@ install_single_module <- function(module, type, source, modules_dir) {
 #'
 #' Remove one or more snippet modules and recompose the active snippet file.
 #'
-#' @param modules Character vector of module names to remove
+#' @param modules Character vector of module names to remove, or "all" to remove all installed modules
 #' @param type Snippet type (e.g., "r", "markdown")
 #' @param backup Create backup before modifying existing snippets
 #'
@@ -335,6 +335,9 @@ install_single_module <- function(module, type, source, modules_dir) {
 #' # Remove specific modules
 #' remove_snippet_modules(c("dplyr", "tidyr"), type = "r")
 #' 
+#' # Remove all installed modules
+#' remove_snippet_modules("all", type = "r")
+#' 
 #' # Remove without backup
 #' remove_snippet_modules("ggplot2", type = "r", backup = FALSE)
 #' }}
@@ -343,6 +346,16 @@ remove_snippet_modules <- function(modules, type = "r", backup = TRUE) {
   
   if (length(modules) == 0) {
     usethis::ui_stop("No modules specified for removal")
+  }
+  
+  # Handle "all" modules case
+  if (length(modules) == 1 && modules == "all") {
+    modules <- get_installed_modules_for_type(type)
+    if (length(modules) == 0) {
+      usethis::ui_info("No modules installed for type '{type}'")
+      return(invisible(list()))
+    }
+    usethis::ui_info("Removing all {length(modules)} installed modules for type '{type}': {paste(modules, collapse = ', ')}")
   }
   
   # Read current registry

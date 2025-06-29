@@ -7,7 +7,7 @@
 remove_snippet_modules(modules, type = "r", backup = TRUE)
 }
 \arguments{
-\item{modules}{Character vector of module names to remove}
+\item{modules}{Character vector of module names to remove, or "all" to remove all installed modules}
 
 \item{type}{Snippet type (e.g., "r", "markdown")}
 
@@ -23,6 +23,9 @@ Remove one or more snippet modules and recompose the active snippet file.
 \dontrun{\donttest{
 # Remove specific modules
 remove_snippet_modules(c("dplyr", "tidyr"), type = "r")
+
+# Remove all installed modules
+remove_snippet_modules("all", type = "r")
 
 # Remove without backup
 remove_snippet_modules("ggplot2", type = "r", backup = FALSE)
