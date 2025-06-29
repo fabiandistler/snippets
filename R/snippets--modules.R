@@ -13,6 +13,129 @@
 
 # Helper Functions --------------------------------------------------------
 
+#' Check if source is a URL
+#'
+#' @param source Source string to check
+#' @return Logical indicating if source is URL
+#' @noRd
+is_url <- function(source) {
+  stringr::str_detect(source, "^https?://")
+}
+
+#' Construct URL from base source and filename
+#'
+#' @param base_source Base URL (with or without trailing slash)
+#' @param filename Filename to append
+#' @return Complete URL
+#' @noRd
+construct_url <- function(base_source, filename) {
+  if (stringr::str_detect(base_source, "/$")) {
+    # Base URL with trailing slash: just append filename
+    paste0(base_source, filename)
+  } else if (stringr::str_detect(base_source, "/[^/]+\\.[^/]+$")) {
+    # Direct file URL: replace filename
+    base_dir <- dirname(base_source)
+    paste(base_dir, filename, sep = "/")
+  } else {
+    # Assume it's a base URL without trailing slash
+    paste(base_source, filename, sep = "/")
+  }
+}
+
+#' Try to install from URL with fallback
+#'
+#' @param module Module name
+#' @param type Snippet type  
+#' @param source URL source
+#' @param local_path Local destination path
+#' @return List with success status and metadata
+#' @noRd
+try_url_with_fallback <- function(module, type, source, local_path) {
+  # Step 1: Try specific module format [module]-[type].snippets
+  module_filename <- paste0(module, "-", type, ".snippets")
+  module_url <- construct_url(source, module_filename)
+  
+  if (download_from_url(module_url, local_path)) {
+    return(list(
+      success = TRUE,
+      fallback_used = FALSE,
+      actual_filename = module_filename,
+      source_url = module_url
+    ))
+  }
+  
+  # Step 2: Fallback to generic format [type].snippets
+  generic_filename <- paste0(type, ".snippets")
+  generic_url <- construct_url(source, generic_filename)
+  
+  if (download_from_url(generic_url, local_path)) {
+    return(list(
+      success = TRUE,
+      fallback_used = TRUE,
+      actual_filename = generic_filename,
+      source_url = generic_url
+    ))
+  }
+  
+  return(list(
+    success = FALSE,
+    fallback_used = FALSE,
+    actual_filename = NA,
+    source_url = NA,
+    error = paste("Neither", module_filename, "nor", generic_filename, "found at", source)
+  ))
+}
+
+#' Try to install from local directory with fallback
+#'
+#' @param module Module name
+#' @param type Snippet type
+#' @param source Local source directory
+#' @param local_path Local destination path
+#' @return List with success status and metadata
+#' @noRd
+try_local_with_fallback <- function(module, type, source, local_path) {
+  modules_dir <- if (source == "local") get_snippet_modules_dir() else source
+  
+  # Step 1: Try specific module format [module]-[type].snippets
+  module_filename <- paste0(module, "-", type, ".snippets")
+  module_file <- fs::path(modules_dir, module_filename)
+  
+  if (fs::file_exists(module_file)) {
+    if (fs::file_copy(module_file, local_path, overwrite = TRUE)) {
+      return(list(
+        success = TRUE,
+        fallback_used = FALSE,
+        actual_filename = module_filename,
+        source_path = module_file
+      ))
+    }
+  }
+  
+  # Step 2: Fallback to generic format [type].snippets
+  generic_filename <- paste0(type, ".snippets")
+  generic_file <- fs::path(modules_dir, generic_filename)
+  
+  if (fs::file_exists(generic_file)) {
+    if (fs::file_copy(generic_file, local_path, overwrite = TRUE)) {
+      return(list(
+        success = TRUE,
+        fallback_used = TRUE,
+        actual_filename = generic_filename,
+        source_path = generic_file
+      ))
+    }
+  }
+  
+  return(list(
+    success = FALSE,
+    fallback_used = FALSE,
+    actual_filename = NA,
+    source_path = NA,
+    error = paste("Neither", module_filename, "nor", generic_filename, "found in", modules_dir)
+  ))
+}
+
 #' Download file from URL
 #'
 #' @param url URL to download from
@@ -186,7 +309,7 @@ compose_snippet_modules <- function(modules, type, output_path) {
 #'
 #' @param type Snippet type to filter by (e.g., "r", "markdown"). 
 #'   Use "all" to show all types.
-#' @param source Source to filter by ("package", "local", "all")
+#' @param source Source to filter by ("local", "all") or URL
 #' @param installed_only Show only installed modules
 #'
 #' @return Data frame with module information
@@ -201,8 +324,8 @@ compose_snippet_modules <- function(modules, type, output_path) {
 #' # List all installed modules
 #' list_snippet_modules(installed_only = TRUE)
 #' 
-#' # List modules from package only
-#' list_snippet_modules(source = "package")
+#' # List modules from all sources
+#' list_snippet_modules(source = "all")
 #' 
 #' # List modules from local source only
 #' list_snippet_modules(source = "local", type = "r")
@@ -217,69 +340,48 @@ list_snippet_modules <- function(type = "all", source = "all", installed_only = 
     stringsAsFactors = FALSE
   )
   
-  # Get modules from package
-  if (source %in% c("all", "package")) {
-    pkg_snippets_dir <- get_path_snippets_dir_of_pkg("snippets")
-    if (pkg_snippets_dir != "") {
-      # Look for files with module naming pattern: *-*.snippets
-      pkg_files <- fs::dir_ls(pkg_snippets_dir, regexp = ".*-.*\\.snippets$")
-      
-      for (file in pkg_files) {
-        filename <- fs::path_file(file)
-        
-        # Skip files that don't follow module format (e.g., just "r.snippets")
-        if (!stringr::str_detect(filename, "^.+-.+\\.snippets$")) {
-          next
-        }
-        
-        tryCatch({
-          parsed <- parse_module_filename(filename)
-          if (type == "all" || parsed$type == type) {
-            modules_info <- rbind(modules_info, data.frame(
-              module = parsed$module,
-              type = parsed$type,
-              source = "package",
-              installed = FALSE,  # Will be updated below
-              path = file,
-              stringsAsFactors = FALSE
-            ))
-          }
-        }, error = function(e) {
-          # Skip files that can't be parsed as modules
-        })
-      }
-    }
-  }
-  
   # Get local modules
   if (source %in% c("all", "local")) {
     modules_dir <- get_snippet_modules_dir()
     if (fs::dir_exists(modules_dir)) {
-      local_files <- fs::dir_ls(modules_dir, regexp = ".*-.*\\.snippets$")
+      # Find all .snippets files (both [module]-[type].snippets and [type].snippets)
+      all_snippet_files <- fs::dir_ls(modules_dir, regexp = ".*\\.snippets$")
       
-      for (file in local_files) {
+      for (file in all_snippet_files) {
         filename <- fs::path_file(file)
         
-        # Skip files that don't follow module format
-        if (!stringr::str_detect(filename, "^.+-.+\\.snippets$")) {
-          next
-        }
-        
-        tryCatch({
-          parsed <- parse_module_filename(filename)
-          if (type == "all" || parsed$type == type) {
+        # Try to parse as [module]-[type].snippets first
+        if (stringr::str_detect(filename, "^.+-.+\\.snippets$")) {
+          tryCatch({
+            parsed <- parse_module_filename(filename)
+            if (type == "all" || parsed$type == type) {
+              modules_info <- rbind(modules_info, data.frame(
+                module = parsed$module,
+                type = parsed$type,
+                source = "local",
+                installed = FALSE,
+                path = file,
+                stringsAsFactors = FALSE
+              ))
+            }
+          }, error = function(e) {
+            # Skip files that can't be parsed as modules
+          })
+        } 
+        # Try to parse as [type].snippets (generic format)
+        else if (stringr::str_detect(filename, "^[^-]+\\.snippets$")) {
+          file_type <- stringr::str_remove(filename, "\\.snippets$")
+          if (type == "all" || file_type == type) {
             modules_info <- rbind(modules_info, data.frame(
-              module = parsed$module,
-              type = parsed$type,
+              module = file_type,  # Use type as module name for generic files
+              type = file_type,
               source = "local",
-              installed = FALSE,  # Will be updated below
+              installed = FALSE,
               path = file,
               stringsAsFactors = FALSE
             ))
           }
-        }, error = function(e) {
-          # Skip files that can't be parsed as modules
-        })
+        }
       }
     }
   }

@@ -7,7 +7,7 @@
 install_snippet_modules(
   modules,
   type = "r",
-  source = "package",
+  source = "local",
   backup = TRUE,
   force_update = FALSE
 )
@@ -17,7 +17,7 @@ install_snippet_modules(
 
 \item{type}{Snippet type (e.g., "r", "markdown") or vector of types}
 
-\item{source}{Source of modules ("package", "local") or direct URL}
+\item{source}{Source of modules ("local") or direct URL}
 
 \item{backup}{Create backup before modifying existing snippets}
 
@@ -33,57 +33,61 @@ snippet file that RStudio reads.
 \details{
 \subsection{Source Types}{
 \itemize{
-\item \strong{"package"}: Install from R package (default)
-\item \strong{"local"}: Install from local filesystem
+\item \strong{"local"}: Install from local filesystem (default)
 \item \strong{URL}: Direct URL to snippet file or base directory
 }
 }
 
+\subsection{Intelligent Fallback System}{
+
+For each module installation, the system automatically tries:
+\enumerate{
+\item \strong{Specific module}: \verb{[module]-[type].snippets} (e.g., \code{dplyr-r.snippets})
+\item \strong{Generic fallback}: \verb{[type].snippets} (e.g., \code{r.snippets})
+}
+
+This allows maximum flexibility - you can use specialized modules or generic language files.
+}
+
 \subsection{URL Usage}{
 
-URLs are automatically detected and can be used in several ways:
+URLs are automatically detected and support intelligent fallback:
+
+\strong{Base directory URL:}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r", 
+  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+# Tries: dplyr-r.snippets, then r.snippets
+}\if{html}{\out{</div>}}
 
 \strong{Direct file URL:}
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r",
   source = "https://example.com/dplyr-r.snippets")
-}\if{html}{\out{</div>}}
-
-\strong{Base directory URL (automatically appends module filename):}
-
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r", 
-  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
-}\if{html}{\out{</div>}}
-
-\strong{GitHub raw URLs:}
-
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r",
-  source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/dplyr-r.snippets")
+# Tries: dplyr-r.snippets, then r.snippets (auto-constructed)
 }\if{html}{\out{</div>}}
 }
 }
 \examples{
 \dontrun{\donttest{
-# Install modules from package (default)
+# Install modules from local files (default)
 install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
 
-# Install same modules for multiple types
+# Install same modules for multiple types  
 install_snippet_modules("dplyr", type = c("r", "markdown"))
 
-# Install from local files
-install_snippet_modules("custom_module", type = "r", source = "local")
-
-# Install from direct URL
-install_snippet_modules("dplyr", type = "r", 
-  source = "https://example.com/dplyr-r.snippets")
-
-# Install from GitHub base URL (automatically appends filename)
+# Install from GitHub base URL with intelligent fallback
 install_snippet_modules("dplyr", type = "r",
   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+# Tries: dplyr-r.snippets, then r.snippets
 
-# Install multiple modules from same base URL
+# Install multiple modules - each gets intelligent fallback
 install_snippet_modules(c("dplyr", "ggplot2"), type = "r",
   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
+
+# Install from direct file URL
+install_snippet_modules("dplyr", type = "r", 
+  source = "https://example.com/dplyr-r.snippets")
 
 # Install with backup disabled
 install_snippet_modules("tidyr", type = "r", backup = FALSE)

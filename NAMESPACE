@@ -3,7 +3,6 @@
 export(backup_rstudio_snippets)
 export(get_default_snippet_types)
 export(get_path_rstudio_snippets_dir)
-export(install_all_package_modules)
 export(install_snippet_modules)
 export(list_snippet_file_backups)
 export(list_snippet_modules)
