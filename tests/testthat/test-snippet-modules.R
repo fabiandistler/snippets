@@ -190,33 +190,26 @@ test_that("install_single_module handles different sources", {
   temp_modules_dir <- file.path(temp_dir, "modules")
   dir.create(temp_modules_dir, showWarnings = FALSE)
   
-  # Create mock available_modules data frame for traditional sources
-  available_modules <- data.frame(
-    module = c("test"),
-    type = c("r"),
-    source = c("package"),
-    path = c(tempfile()), # package source (local file)
-    stringsAsFactors = FALSE
-  )
-  
-  # Create a test file for package source
-  package_file <- available_modules$path[1]
+  # Create a test file for local source
+  test_source_dir <- tempfile()
+  dir.create(test_source_dir)
+  package_file <- file.path(test_source_dir, "test-r.snippets")
   writeLines("# Test snippet content", package_file)
   
-  # Test package source (should work with file copy)
-  result <- snippets:::install_single_module("test", "r", "package", temp_modules_dir, available_modules)
+  # Test local source (should work with file copy)
+  result <- snippets:::install_single_module("test", "r", test_source_dir, temp_modules_dir)
   expect_true(result$success)
   expect_true(file.exists(result$local_path))
   
   # Test URL source (direct URL - will fail download but shows URL detection works)
-  result <- snippets:::install_single_module("test", "r", "https://example.com/test-r.snippets", temp_modules_dir, available_modules)
+  result <- snippets:::install_single_module("test", "r", "https://example.com/test-r.snippets", temp_modules_dir)
   expect_false(result$success) # Expected to fail since URL doesn't exist
   
   # Test base URL source (will fail download but shows URL detection works)
-  result <- snippets:::install_single_module("test", "r", "https://example.com/", temp_modules_dir, available_modules)
+  result <- snippets:::install_single_module("test", "r", "https://example.com/", temp_modules_dir)
   expect_false(result$success) # Expected to fail since URL doesn't exist
   
   # Cleanup
   unlink(temp_modules_dir, recursive = TRUE)
-  unlink(package_file)
+  unlink(test_source_dir, recursive = TRUE)
 })

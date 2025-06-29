@@ -123,19 +123,21 @@ install_snippet_modules("dplyr", type = "r", force_update = TRUE)
 To skip backup creation (not recommended):
 
 ```{r}
-install_snippet_modules("ggplot2", type = "r", backup = FALSE)
+install_snippet_modules("ggplot2", backup = FALSE)
 ```
 
 ## How Module Installation Works
 
 When you install modules, the system:
 
-1. **Validates** that requested modules exist
-2. **Creates a backup** of your current snippets (if enabled)
-3. **Copies module files** to a local module directory
-4. **Updates the registry** to track installed modules
-5. **Recomposes** your main snippet file by combining all installed modules
-6. **Notifies you** to restart RStudio for changes to take effect
+1. **Auto-discovers** available snippet files (if modules=NULL)
+2. **Auto-detects** snippet types (if type=NULL)  
+3. **Auto-detects** source location (local vs URL)
+4. **Creates a backup** of your current snippets (if enabled)
+5. **Downloads/copies** snippet files as needed
+6. **Updates the registry** to track installed modules
+7. **Recomposes** your main snippet file by combining all installed modules
+8. **Notifies you** to restart RStudio for changes to take effect
 
 ### Module Registry
 
@@ -184,7 +186,7 @@ Keep backup creation enabled (the default):
 
 ```{r}
 # Good - creates backup
-install_snippet_modules("dplyr", type = "r", backup = TRUE)
+install_snippet_modules("dplyr", backup = TRUE)
 ```
 
 ### 2. Install Related Modules Together
@@ -281,13 +283,13 @@ available <- list_snippet_modules(type = "r")
 print(available$module)
 
 # 3. Install specific modules
-install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+install_snippet_modules(c("dplyr", "ggplot2"))
 
 # 4. Verify installation
 show_active_modules(type = "r")
 
 # 5. Later, add more modules
-install_snippet_modules("plotly", type = "r")
+install_snippet_modules("plotly")
 
 # 6. Remove a module you don't need
 remove_snippet_modules("plotly", type = "r")

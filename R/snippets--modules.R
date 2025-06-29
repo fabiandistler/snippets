@@ -244,7 +244,12 @@ try_local_with_fallback <- function(module, type, source, local_path) {
   module_file <- fs::path(modules_dir, module_filename)
   
   if (fs::file_exists(module_file)) {
-    if (fs::file_copy(module_file, local_path, overwrite = TRUE)) {
+    copy_result <- tryCatch({
+      fs::file_copy(module_file, local_path, overwrite = TRUE)
+      TRUE
+    }, error = function(e) FALSE)
+    
+    if (copy_result) {
       return(list(
         success = TRUE,
         fallback_used = FALSE,
@@ -259,7 +264,12 @@ try_local_with_fallback <- function(module, type, source, local_path) {
   generic_file <- fs::path(modules_dir, generic_filename)
   
   if (fs::file_exists(generic_file)) {
-    if (fs::file_copy(generic_file, local_path, overwrite = TRUE)) {
+    copy_result <- tryCatch({
+      fs::file_copy(generic_file, local_path, overwrite = TRUE)
+      TRUE
+    }, error = function(e) FALSE)
+    
+    if (copy_result) {
       return(list(
         success = TRUE,
         fallback_used = TRUE,
