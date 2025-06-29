@@ -8,43 +8,42 @@
 #' Install one or more snippet modules and compose them into the active
 #' snippet file that RStudio reads.
 #'
-#' @param modules Character vector of module names to install
-#' @param type Snippet type (e.g., "r", "markdown") or vector of types
-#' @param source Source of modules ("local") or direct URL
+#' @param modules Character vector of module names (optional)
+#' @param type Snippet type filter (optional - if NULL, installs all types found)
+#' @param from Path or URL to install from (optional - defaults to local modules directory)
 #' @param backup Create backup before modifying existing snippets
 #' @param force_update Update modules even if already installed
 #'
 #' @details
-#' ## Source Types
+#' ## Ultra-Simple API
 #' 
-#' - **"local"**: Install from local filesystem (default)
-#' - **URL**: Direct URL to snippet file or base directory
+#' All parameters are optional! The function uses intelligent auto-discovery:
 #' 
-#' ## Intelligent Fallback System
-#' 
-#' For each module installation, the system automatically tries:
-#' 1. **Specific module**: `[module]-[type].snippets` (e.g., `dplyr-r.snippets`)
-#' 2. **Generic fallback**: `[type].snippets` (e.g., `r.snippets`)
-#' 
-#' This allows maximum flexibility - you can use specialized modules or generic language files.
-#' 
-#' ## URL Usage
-#' 
-#' URLs are automatically detected and support intelligent fallback:
-#' 
-#' **Base directory URL:**
+#' **Install everything found (simplest usage):**
 #' ```r
-#' install_snippet_modules("dplyr", type = "r", 
-#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
-#' # Tries: dplyr-r.snippets, then r.snippets
+#' install_snippet_modules()                        # Install all from local dir
+#' install_snippet_modules(from = "path/")          # Install all from path
+#' install_snippet_modules(from = "https://...")    # Install all from URL
 #' ```
 #' 
-#' **Direct file URL:**
+#' **Install specific type:**
 #' ```r
-#' install_snippet_modules("dplyr", type = "r",
-#'   source = "https://example.com/dplyr-r.snippets")
-#' # Tries: dplyr-r.snippets, then r.snippets (auto-constructed)
+#' install_snippet_modules(type = "r")              # All R snippets from local
+#' install_snippet_modules(type = "r", from = "path/")  # All R snippets from path
 #' ```
+#' 
+#' **Install specific modules (traditional):**
+#' ```r
+#' install_snippet_modules("dplyr", type = "r")     # Specific module, local
+#' install_snippet_modules("dplyr", from = "path/") # Specific module, path (type = "r" default)
+#' ```
+#' 
+#' ## Intelligent Features
+#' 
+#' - **Auto-detection**: URLs vs local paths detected automatically
+#' - **Smart fallback**: Tries `[module]-[type].snippets`, then `[type].snippets`
+#' - **Auto-discovery**: Scans location and installs all found snippet files
+#' - **Flexible**: Works with both specific modules and generic type files
 #'
 #' @return Invisibly returns list of installation results
 #' @export
@@ -52,56 +51,145 @@
 #'
 #' @examples
 #' \dontrun{\donttest{
-#' # Install modules from local files (default)
-#' install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+#' # Ultra-simple: install everything found
+#' install_snippet_modules()  # Install all from local modules directory
+#' install_snippet_modules(from = "/path/to/snippets/")  # Install all from path
+#' install_snippet_modules(from = "https://github.com/user/snippets/")  # Install all from URL
 #' 
-#' # Install same modules for multiple types  
-#' install_snippet_modules("dplyr", type = c("r", "markdown"))
+#' # Install all of specific type
+#' install_snippet_modules(type = "r")  # All R snippets from local
+#' install_snippet_modules(type = "r", from = "https://...")  # All R snippets from URL
 #' 
-#' # Install from GitHub base URL with intelligent fallback
-#' install_snippet_modules("dplyr", type = "r",
-#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
-#' # Tries: dplyr-r.snippets, then r.snippets
+#' # Traditional: install specific modules
+#' install_snippet_modules("dplyr")  # type defaults to "r"
+#' install_snippet_modules("dplyr", type = "r")  # explicit type
+#' install_snippet_modules(c("dplyr", "ggplot2"), type = "r")  # multiple modules
 #' 
-#' # Install multiple modules - each gets intelligent fallback
-#' install_snippet_modules(c("dplyr", "ggplot2"), type = "r",
-#'   source = "https://raw.githubusercontent.com/user/repo/main/inst/snippets/")
-#' 
-#' # Install from direct file URL
-#' install_snippet_modules("dplyr", type = "r", 
-#'   source = "https://example.com/dplyr-r.snippets")
-#' 
-#' # Install with backup disabled
-#' install_snippet_modules("tidyr", type = "r", backup = FALSE)
-#' 
-#' # Force update existing modules
-#' install_snippet_modules("dplyr", type = "r", force_update = TRUE)
+#' # Advanced options
+#' install_snippet_modules(backup = FALSE)  # No backup
+#' install_snippet_modules(force_update = TRUE)  # Force update all
+#' install_snippet_modules("dplyr", from = "path/", force_update = TRUE)  # Force specific
 #' }}
-install_snippet_modules <- function(modules, 
-                                   type = "r", 
-                                   source = "local",
+install_snippet_modules <- function(modules = NULL, 
+                                   type = NULL, 
+                                   from = NULL,
                                    backup = TRUE,
                                    force_update = FALSE) {
   
-  types <- match_snippet_type(type, several.ok = TRUE)
-  
-  # Handle multiple types by calling recursively
-  if (length(types) > 1) {
-    results <- list()
-    for (single_type in types) {
-      results[[single_type]] <- install_snippet_modules(
-        modules = modules,
-        type = single_type,
-        source = source,
-        backup = backup,
-        force_update = force_update
-      )
-    }
-    return(invisible(results))
+  # Auto-discovery: if no specific parameters, install everything found
+  if (is.null(modules) && is.null(type)) {
+    return(install_everything_found(from, backup, force_update))
   }
   
-  # Single type processing (original logic)
-  type <- types[1]
+  # Auto-discovery: if only type specified, install all modules of that type
+  if (is.null(modules) && !is.null(type)) {
+    return(install_all_of_type(type, from, backup, force_update))
+  }
+  
+  # Traditional mode: specific modules specified
+  if (!is.null(modules)) {
+    # If type not specified, try to infer or default to "r"
+    if (is.null(type)) {
+      type <- "r"  # Default assumption
+      usethis::ui_info("No type specified, defaulting to 'r' snippets")
+    }
+    
+    return(install_specific_modules(modules, type, from, backup, force_update))
+  }
+  
+  usethis::ui_stop("Invalid parameter combination")
+}
+
+#' Install everything found at location
+#'
+#' @param from Path or URL to scan
+#' @param backup Create backup
+#' @param force_update Force update existing
+#' @return Installation results
+#' @noRd
+install_everything_found <- function(from = NULL, backup = TRUE, force_update = FALSE) {
+  discovered <- discover_snippet_files(from)
+  
+  if (nrow(discovered$modules) == 0 && nrow(discovered$generics) == 0) {
+    usethis::ui_info("No snippet files found at {from %||% 'default location'}")
+    return(invisible(list()))
+  }
+  
+  usethis::ui_info("Auto-discovery found {nrow(discovered$modules)} modules and {nrow(discovered$generics)} generic files")
+  
+  results <- list()
+  
+  # Install discovered modules
+  for (i in seq_len(nrow(discovered$modules))) {
+    row <- discovered$modules[i, ]
+    result <- install_specific_modules(row$module, row$type, from, backup, force_update)
+    results[[paste(row$module, row$type, sep = "-")]] <- result
+  }
+  
+  # Install discovered generics
+  for (i in seq_len(nrow(discovered$generics))) {
+    row <- discovered$generics[i, ]
+    result <- install_specific_modules(row$type, row$type, from, backup, force_update)
+    results[[row$type]] <- result
+  }
+  
+  usethis::ui_done("Auto-discovery installation completed")
+  invisible(results)
+}
+
+#' Install all modules of specific type
+#'
+#' @param type Snippet type
+#' @param from Path or URL
+#' @param backup Create backup
+#' @param force_update Force update existing
+#' @return Installation results
+#' @noRd
+install_all_of_type <- function(type, from = NULL, backup = TRUE, force_update = FALSE) {
+  discovered <- discover_snippet_files(from, type)
+  
+  if (nrow(discovered$modules) == 0 && nrow(discovered$generics) == 0) {
+    usethis::ui_info("No {type} snippet files found at {from %||% 'default location'}")
+    return(invisible(list()))
+  }
+  
+  usethis::ui_info("Installing all {type} snippets found...")
+  
+  results <- list()
+  
+  # Install discovered modules of this type
+  for (i in seq_len(nrow(discovered$modules))) {
+    row <- discovered$modules[i, ]
+    result <- install_specific_modules(row$module, row$type, from, backup, force_update)
+    results[[row$module]] <- result
+  }
+  
+  # Install generic file if found
+  for (i in seq_len(nrow(discovered$generics))) {
+    row <- discovered$generics[i, ]
+    result <- install_specific_modules(row$type, row$type, from, backup, force_update)
+    results[[paste0(row$type, "_generic")]] <- result
+  }
+  
+  invisible(results)
+}
+
+#' Install specific modules (traditional mode)
+#'
+#' @param modules Module names
+#' @param type Snippet type
+#' @param from Path or URL
+#' @param backup Create backup
+#' @param force_update Force update existing
+#' @return Installation results
+#' @noRd
+install_specific_modules <- function(modules, type, from = NULL, backup = TRUE, force_update = FALSE) {
+  # Detect source type
+  source_type <- auto_detect_source(from)
+  source <- if (source_type == "default") "local" else from
+  
+  # Validate type
+  type <- match_snippet_type(type, several.ok = FALSE)
   
   if (length(modules) == 0) {
     usethis::ui_stop("No modules specified for installation")
@@ -164,7 +252,7 @@ install_snippet_modules <- function(modules,
         file_path = result$local_path,
         fallback_used = result$fallback_used,
         actual_filename = result$actual_filename,
-        source_url = if (is_url(source)) result$source_url else result$source_path
+        source_url = if (auto_detect_source(source) == "url") result$source_url else result$source_path
       )
     }
   }
@@ -207,7 +295,9 @@ install_single_module <- function(module, type, source, modules_dir) {
   local_path <- fs::path(modules_dir, local_filename)
   
   # Try installation with intelligent fallback
-  if (is_url(source)) {
+  source_type <- auto_detect_source(source)
+  
+  if (source_type == "url") {
     result <- try_url_with_fallback(module, type, source, local_path)
   } else {
     result <- try_local_with_fallback(module, type, source, local_path)
@@ -219,7 +309,7 @@ install_single_module <- function(module, type, source, modules_dir) {
   # User feedback
   if (result$success) {
     fallback_msg <- if (result$fallback_used) paste0(" (using generic ", result$actual_filename, ")") else ""
-    source_type <- if (is_url(source)) "URL" else source
+    source_type <- if (source_type == "url") "URL" else source
     usethis::ui_done("Installed module: {crayon::green(module)} from {source_type}{fallback_msg}")
   } else {
     usethis::ui_oops("Failed to install module {module}: {result$error}")

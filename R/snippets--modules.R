@@ -13,6 +13,148 @@
 
 # Helper Functions --------------------------------------------------------
 
+#' Auto-detect source type from path
+#'
+#' @param path Path to check (URL, local directory, or file)
+#' @return Source type ("url", "local", or "default")
+#' @noRd
+auto_detect_source <- function(path) {
+  if (missing(path) || is.null(path)) {
+    return("default")
+  }
+  
+  if (stringr::str_detect(path, "^https?://")) {
+    return("url")
+  } else if (fs::dir_exists(path) || fs::file_exists(path)) {
+    return("local")
+  } else {
+    usethis::ui_stop("Invalid path: {path} (neither URL nor existing local path)")
+  }
+}
+
+#' Discover all snippet files at a location
+#'
+#' @param path Path to scan (URL base, local directory, or NULL for default)
+#' @param type Optional type filter
+#' @return List with discovered modules and generics
+#' @noRd
+discover_snippet_files <- function(path = NULL, type = NULL) {
+  source_type <- auto_detect_source(path)
+  
+  if (source_type == "default") {
+    path <- get_snippet_modules_dir()
+    source_type <- "local"
+  }
+  
+  discovered <- list(
+    modules = data.frame(
+      module = character(0),
+      type = character(0),
+      filename = character(0),
+      path = character(0),
+      stringsAsFactors = FALSE
+    ),
+    generics = data.frame(
+      type = character(0),
+      filename = character(0), 
+      path = character(0),
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  if (source_type == "local") {
+    discovered <- discover_local_files(path, type)
+  } else if (source_type == "url") {
+    discovered <- discover_url_files(path, type)
+  }
+  
+  discovered
+}
+
+#' Discover snippet files in local directory
+#'
+#' @param dir_path Local directory path
+#' @param type Optional type filter
+#' @return List with modules and generics data frames
+#' @noRd
+discover_local_files <- function(dir_path, type = NULL) {
+  if (!fs::dir_exists(dir_path)) {
+    return(list(modules = data.frame(), generics = data.frame()))
+  }
+  
+  # Find all .snippets files
+  snippet_files <- fs::dir_ls(dir_path, regexp = ".*\\.snippets$")
+  
+  modules <- data.frame(
+    module = character(0), type = character(0), 
+    filename = character(0), path = character(0),
+    stringsAsFactors = FALSE
+  )
+  
+  generics <- data.frame(
+    type = character(0), filename = character(0), path = character(0),
+    stringsAsFactors = FALSE
+  )
+  
+  for (file in snippet_files) {
+    filename <- fs::path_file(file)
+    
+    # Try parsing as module format: [module]-[type].snippets
+    if (stringr::str_detect(filename, "^.+-.+\\.snippets$")) {
+      tryCatch({
+        parsed <- parse_module_filename(filename)
+        if (is.null(type) || parsed$type == type) {
+          modules <- rbind(modules, data.frame(
+            module = parsed$module,
+            type = parsed$type,
+            filename = filename,
+            path = file,
+            stringsAsFactors = FALSE
+          ))
+        }
+      }, error = function(e) {
+        # Skip invalid module files
+      })
+    }
+    # Try parsing as generic format: [type].snippets  
+    else if (stringr::str_detect(filename, "^[^-]+\\.snippets$")) {
+      file_type <- stringr::str_remove(filename, "\\.snippets$")
+      if (is.null(type) || file_type == type) {
+        generics <- rbind(generics, data.frame(
+          type = file_type,
+          filename = filename,
+          path = file,
+          stringsAsFactors = FALSE
+        ))
+      }
+    }
+  }
+  
+  list(modules = modules, generics = generics)
+}
+
+#' Discover snippet files from URL (basic implementation)
+#'
+#' @param base_url Base URL to scan
+#' @param type Optional type filter
+#' @return List with modules and generics data frames (simplified for URLs)
+#' @noRd
+discover_url_files <- function(base_url, type = NULL) {
+  # For URLs, we can't easily scan directories, so return empty discovery
+  # URLs will be handled by the fallback mechanism in installation
+  list(
+    modules = data.frame(
+      module = character(0), type = character(0),
+      filename = character(0), path = character(0),
+      stringsAsFactors = FALSE
+    ),
+    generics = data.frame(
+      type = character(0), filename = character(0), path = character(0),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 #' Check if source is a URL
 #'
 #' @param source Source string to check
