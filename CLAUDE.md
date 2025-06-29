@@ -45,29 +45,25 @@ The package uses `testthat` framework for testing. Test files are located in `te
 ### Core Functionality
 The package is organized into several functional modules:
 
-1. **Snippet Installation** (`R/snippets--install.R`): 
-   - Functions to install snippets from packages or directories
-   - `install_snippets_from_package()` and `install_snippets_from_dir()` are main entry points
-
-2. **Modular Snippet Management** (`R/snippets--modules.R`, `R/snippets--modules-install.R`):
-   - NEW: Manage snippet modules with naming convention `{module}-{type}.snippets`
+1. **Modular Snippet Management** (`R/snippets--modules.R`, `R/snippets--modules-install.R`):
+   - Manage snippet modules with naming convention `{module}-{type}.snippets`
    - Install, remove, and compose modular snippet collections
    - Registry system to track installed modules
-   - Functions: `list_snippet_modules()`, `show_active_modules()`, `install_snippet_modules()`, `remove_snippet_modules()`
+   - Functions: `list_snippet_modules()`, `show_active_modules()`, `install_snippet_modules()`, `remove_snippet_modules()`, `install_all_package_modules()`
 
-3. **File and Directory Management** (`R/snippets--files-and-dirs.R`, `R/snippets--files-and-dirs--internal.R`):
+2. **File and Directory Management** (`R/snippets--files-and-dirs.R`, `R/snippets--files-and-dirs--internal.R`):
    - Functions to locate RStudio snippet directories and files
    - Cross-platform path handling for different RStudio versions
 
-4. **Backup System** (`R/snippets--backup.R`):
+3. **Backup System** (`R/snippets--backup.R`):
    - Create and manage backups of existing snippet files before replacement
    - Uses `backup.tools` package for backup functionality
 
-5. **Snippet Type Management** (`R/snippets--snippet-types.R`):
+4. **Snippet Type Management** (`R/snippets--snippet-types.R`):
    - Functions to validate and match snippet types (r, markdown, etc.)
    - Type detection and validation logic
 
-6. **Internal Helpers** (`R/internal--*.R`):
+5. **Internal Helpers** (`R/internal--*.R`):
    - Utility functions for snippet preparation and internal operations
 
 ### Key Dependencies
@@ -89,33 +85,29 @@ The package is organized into several functional modules:
 
 ## Working with Snippets
 
-### Installing Snippets
-The main workflow involves installing snippet files from the package to the user's RStudio configuration:
+### Installing Snippets (Module System - Recommended)
+The primary workflow uses the modular snippet management system:
 
 ```r
-# Install all available snippets (traditional method)
-snippets::install_snippets_from_package("snippets")
+# Install all available modules from package (recommended)
+snippets::install_all_package_modules("snippets", type = "r")
+snippets::install_all_package_modules("snippets", type = "all")
 
-# Install specific types
-snippets::install_snippets_from_package("snippets", type = c("r", "markdown"))
-```
+# Or install specific modules
+snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
 
-### Working with Snippet Modules
-The package now supports modular snippet management:
+# Install same modules for multiple types
+snippets::install_snippet_modules("dplyr", type = c("r", "markdown"))
 
-```r
 # List available modules
 snippets::list_snippet_modules(type = "r")
 snippets::list_snippet_modules(type = "all")
-
-# Install specific modules
-snippets::install_snippet_modules(modules = c("dplyr", "ggplot2"), type = "r")
 
 # Show currently active modules
 snippets::show_active_modules(type = "r")
 
 # Remove modules
-snippets::remove_snippet_modules(modules = c("dplyr"), type = "r")
+snippets::remove_snippet_modules(c("dplyr"), type = "r")
 ```
 
 ### RStudio Integration
@@ -146,3 +138,5 @@ All workflows are triggered on pushes to main branches and pull requests.
 ## Workflow Guidelines
 
 - You only work on my fork and all PRs go to my fork. Never try to push or PR to GegznaV's repo unless I tell you to do it.
+- **CRITICAL**: ALL PRs must be created on fabiandistler/snippets (my fork) - NEVER on GegznaV/snippets!
+- Default repo is set to fabiandistler/snippets to prevent accidental PRs to upstream

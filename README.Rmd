@@ -54,30 +54,28 @@ remotes::install_github("GegznaV/snippets")
 
 ## Quickstart
 
+### Ultra-Simple Module Installation
 
-### Install Snippets from "snippets"
-
-
-```{r eval=FALSE}
-# Replace current files with snippets with those in package "snippets"
-# (backup copies are created by default)
-snippets::install_snippets_from_package("snippets")
-```
-
-
-```{r, include=FALSE, eval=FALSE}
-# Replace current R and Markdown snippets with those in package "snippets"
-snippets::install_snippets_from_package("snippets", type = c("r", "markdown"), backup = TRUE)
-```
-
-
-## Module Installation
-
-Install specific snippet modules for fine-grained control:
+The new API is incredibly simple with smart defaults:
 
 ```{r eval=FALSE}
-# Install specific modules
-snippets::install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+# Install everything found locally (all types, all modules)
+snippets::install_snippet_modules()
+
+# Install everything from a specific path or URL
+snippets::install_snippet_modules(from = "path/to/snippets/")
+snippets::install_snippet_modules(from = "https://raw.githubusercontent.com/user/repo/main/snippets/")
+
+# Install all modules of a specific type
+snippets::install_snippet_modules(type = "r")
+snippets::install_snippet_modules(type = "markdown")
+
+# Install specific modules (auto-detects type if not specified)
+snippets::install_snippet_modules("dplyr")
+snippets::install_snippet_modules(c("dplyr", "ggplot2"))
+
+# Install specific modules of specific type
+snippets::install_snippet_modules("dplyr", type = "r")
 
 # List available modules
 snippets::list_snippet_modules(type = "r")
@@ -108,8 +106,8 @@ open_rstudio_snippets_dir()
 ```
 
 ```{r eval=FALSE}
-# Replace your R and Markdown snippets with those in package "snippets"
-install_snippets_from_package("snippets", type = c("r", "markdown"), backup = TRUE)
+# Install all snippets found locally
+install_snippet_modules()
 list_snippet_file_backups()
 ```
 

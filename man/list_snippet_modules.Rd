@@ -10,7 +10,7 @@ list_snippet_modules(type = "all", source = "all", installed_only = FALSE)
 \item{type}{Snippet type to filter by (e.g., "r", "markdown").
 Use "all" to show all types.}
 
-\item{source}{Source to filter by ("package", "local", "all")}
+\item{source}{Source to filter by ("local", "all") or URL}
 
 \item{installed_only}{Show only installed modules}
 }
@@ -22,14 +22,17 @@ List available snippet modules
 }
 \examples{
 \dontrun{\donttest{
-# List all available R modules
+# List all available R modules from all sources
 list_snippet_modules(type = "r")
 
 # List all installed modules
 list_snippet_modules(installed_only = TRUE)
 
-# List modules from package
-list_snippet_modules(source = "package")
+# List modules from all sources
+list_snippet_modules(source = "all")
+
+# List modules from local source only
+list_snippet_modules(source = "local", type = "r")
 }}
 }
 \concept{snippet modules}

@@ -5,19 +5,19 @@
 \title{Install snippet modules}
 \usage{
 install_snippet_modules(
-  modules,
-  type = "r",
-  source = "package",
+  modules = NULL,
+  type = NULL,
+  from = NULL,
   backup = TRUE,
   force_update = FALSE
 )
 }
 \arguments{
-\item{modules}{Character vector of module names to install}
+\item{modules}{Character vector of module names (optional)}
 
-\item{type}{Snippet type (e.g., "r", "markdown")}
+\item{type}{Snippet type filter (optional - if NULL, installs all types found)}
 
-\item{source}{Source of modules ("package", "local", "github", "url")}
+\item{from}{Path or URL to install from (optional - defaults to local modules directory)}
 
 \item{backup}{Create backup before modifying existing snippets}
 
@@ -30,16 +30,60 @@ Invisibly returns list of installation results
 Install one or more snippet modules and compose them into the active
 snippet file that RStudio reads.
 }
+\details{
+\subsection{Ultra-Simple API}{
+
+All parameters are optional! The function uses intelligent auto-discovery:
+
+\strong{Install everything found (simplest usage):}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules()                        # Install all from local dir
+install_snippet_modules(from = "path/")          # Install all from path
+install_snippet_modules(from = "https://...")    # Install all from URL
+}\if{html}{\out{</div>}}
+
+\strong{Install specific type:}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules(type = "r")              # All R snippets from local
+install_snippet_modules(type = "r", from = "path/")  # All R snippets from path
+}\if{html}{\out{</div>}}
+
+\strong{Install specific modules (traditional):}
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{install_snippet_modules("dplyr", type = "r")     # Specific module, local
+install_snippet_modules("dplyr", from = "path/") # Specific module, path (type = "r" default)
+}\if{html}{\out{</div>}}
+}
+
+\subsection{Intelligent Features}{
+\itemize{
+\item \strong{Auto-detection}: URLs vs local paths detected automatically
+\item \strong{Smart fallback}: Tries \verb{[module]-[type].snippets}, then \verb{[type].snippets}
+\item \strong{Auto-discovery}: Scans location and installs all found snippet files
+\item \strong{Flexible}: Works with both specific modules and generic type files
+}
+}
+}
 \examples{
 \dontrun{\donttest{
-# Install modules from package
-install_snippet_modules(c("dplyr", "ggplot2"), type = "r")
+# Ultra-simple: install everything found
+install_snippet_modules()  # Install all from local modules directory
+install_snippet_modules(from = "/path/to/snippets/")  # Install all from path
+install_snippet_modules(from = "https://github.com/user/snippets/")  # Install all from URL
 
-# Install with backup disabled
-install_snippet_modules("tidyr", type = "r", backup = FALSE)
+# Install all of specific type
+install_snippet_modules(type = "r")  # All R snippets from local
+install_snippet_modules(type = "r", from = "https://...")  # All R snippets from URL
 
-# Force update existing modules
-install_snippet_modules("dplyr", type = "r", force_update = TRUE)
+# Traditional: install specific modules
+install_snippet_modules("dplyr")  # type defaults to "r"
+install_snippet_modules("dplyr", type = "r")  # explicit type
+install_snippet_modules(c("dplyr", "ggplot2"), type = "r")  # multiple modules
+
+# Advanced options
+install_snippet_modules(backup = FALSE)  # No backup
+install_snippet_modules(force_update = TRUE)  # Force update all
+install_snippet_modules("dplyr", from = "path/", force_update = TRUE)  # Force specific
 }}
 }
 \concept{snippet modules}

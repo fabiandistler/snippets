@@ -32,7 +32,7 @@ VignetteBuilder:
     knitr
 RdMacros: 
     lifecycle
-Additional_repositories:https://mokymai.github.io/download/
+Additional_repositories: https://mokymai.github.io/download/
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
