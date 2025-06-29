@@ -138,3 +138,5 @@ All workflows are triggered on pushes to main branches and pull requests.
 ## Workflow Guidelines
 
 - You only work on my fork and all PRs go to my fork. Never try to push or PR to GegznaV's repo unless I tell you to do it.
+- **CRITICAL**: ALL PRs must be created on fabiandistler/snippets (my fork) - NEVER on GegznaV/snippets!
+- Default repo is set to fabiandistler/snippets to prevent accidental PRs to upstream
