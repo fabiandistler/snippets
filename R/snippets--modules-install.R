@@ -184,9 +184,9 @@ install_all_of_type <- function(type, from = NULL, backup = TRUE, force_update =
 #' @return Installation results
 #' @noRd
 install_specific_modules <- function(modules, type, from = NULL, backup = TRUE, force_update = FALSE) {
-  # Detect source type
+  # Detect source type and set proper source path
   source_type <- auto_detect_source(from)
-  source <- if (source_type == "default") "local" else from
+  source <- if (source_type == "default") get_snippet_modules_dir() else from
   
   # Validate type
   type <- match_snippet_type(type, several.ok = FALSE)

@@ -140,8 +140,53 @@ discover_local_files <- function(dir_path, type = NULL) {
 #' @return List with modules and generics data frames (simplified for URLs)
 #' @noRd
 discover_url_files <- function(base_url, type = NULL) {
-  # For URLs, we can't easily scan directories, so return empty discovery
-  # URLs will be handled by the fallback mechanism in installation
+  # Check if this is a direct file URL (ends with .snippets)
+  if (stringr::str_detect(base_url, "\\.snippets$")) {
+    filename <- basename(base_url)
+    
+    # Parse filename to extract type and module info
+    if (stringr::str_detect(filename, "^[^-]+-[^-]+\\.snippets$")) {
+      # Module format: module-type.snippets
+      parts <- stringr::str_split(stringr::str_remove(filename, "\\.snippets$"), "-")[[1]]
+      if (length(parts) == 2) {
+        module_name <- parts[1]
+        file_type <- parts[2]
+        
+        if (is.null(type) || file_type == type) {
+          return(list(
+            modules = data.frame(
+              module = module_name, type = file_type,
+              filename = filename, path = base_url,
+              stringsAsFactors = FALSE
+            ),
+            generics = data.frame(
+              type = character(0), filename = character(0), path = character(0),
+              stringsAsFactors = FALSE
+            )
+          ))
+        }
+      }
+    } else if (stringr::str_detect(filename, "^[^-]+\\.snippets$")) {
+      # Generic format: type.snippets
+      file_type <- stringr::str_remove(filename, "\\.snippets$")
+      
+      if (is.null(type) || file_type == type) {
+        return(list(
+          modules = data.frame(
+            module = character(0), type = character(0),
+            filename = character(0), path = character(0),
+            stringsAsFactors = FALSE
+          ),
+          generics = data.frame(
+            type = file_type, filename = filename, path = base_url,
+            stringsAsFactors = FALSE
+          )
+        ))
+      }
+    }
+  }
+  
+  # Default: empty discovery for non-file URLs or unrecognized patterns
   list(
     modules = data.frame(
       module = character(0), type = character(0),
@@ -193,6 +238,30 @@ construct_url <- function(base_source, filename) {
 #' @return List with success status and metadata
 #' @noRd
 try_url_with_fallback <- function(module, type, source, local_path) {
+  # Skip nonsensical combinations where module equals type (e.g., r-r.snippets)
+  if (module == type) {
+    # Go directly to generic format
+    generic_filename <- paste0(type, ".snippets")
+    generic_url <- construct_url(source, generic_filename)
+    
+    if (download_from_url(generic_url, local_path)) {
+      return(list(
+        success = TRUE,
+        fallback_used = TRUE,  # This is technically a fallback since we skipped specific format
+        actual_filename = generic_filename,
+        source_url = generic_url
+      ))
+    }
+    
+    return(list(
+      success = FALSE,
+      fallback_used = TRUE,
+      actual_filename = NA,
+      source_url = NA,
+      error = paste("Failed to download", generic_filename, "from URL")
+    ))
+  }
+  
   # Step 1: Try specific module format [module]-[type].snippets
   module_filename <- paste0(module, "-", type, ".snippets")
   module_url <- construct_url(source, module_filename)
@@ -238,6 +307,37 @@ try_url_with_fallback <- function(module, type, source, local_path) {
 #' @noRd
 try_local_with_fallback <- function(module, type, source, local_path) {
   modules_dir <- if (source == "local") get_snippet_modules_dir() else source
+  
+  # Skip nonsensical combinations where module equals type (e.g., r-r.snippets)
+  if (module == type) {
+    # Go directly to generic format
+    generic_filename <- paste0(type, ".snippets")
+    generic_file <- fs::path(modules_dir, generic_filename)
+    
+    if (fs::file_exists(generic_file)) {
+      copy_result <- tryCatch({
+        fs::file_copy(generic_file, local_path, overwrite = TRUE)
+        TRUE
+      }, error = function(e) FALSE)
+      
+      if (copy_result) {
+        return(list(
+          success = TRUE,
+          fallback_used = TRUE,  # This is technically a fallback since we skipped specific format
+          actual_filename = generic_filename,
+          source_path = generic_file
+        ))
+      }
+    }
+    
+    return(list(
+      success = FALSE,
+      fallback_used = TRUE,
+      actual_filename = NA,
+      source_path = NA,
+      error = paste("File not found:", generic_filename, "in", modules_dir)
+    ))
+  }
   
   # Step 1: Try specific module format [module]-[type].snippets
   module_filename <- paste0(module, "-", type, ".snippets")
