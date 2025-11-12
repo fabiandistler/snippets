@@ -70,12 +70,43 @@
 #' install_snippet_modules(force_update = TRUE)  # Force update all
 #' install_snippet_modules("dplyr", from = "path/", force_update = TRUE)  # Force specific
 #' }}
-install_snippet_modules <- function(modules = NULL, 
-                                   type = NULL, 
+install_snippet_modules <- function(modules = NULL,
+                                   type = NULL,
                                    from = NULL,
                                    backup = TRUE,
                                    force_update = FALSE) {
-  
+
+  # Input validation
+  if (!is.null(modules)) {
+    if (!is.character(modules) || length(modules) == 0) {
+      usethis::ui_stop("'modules' must be a non-empty character vector")
+    }
+  }
+
+  if (!is.null(type)) {
+    if (!is.character(type) || length(type) == 0) {
+      usethis::ui_stop("'type' must be a non-empty character vector")
+    }
+  }
+
+  if (!is.null(from)) {
+    if (!is.character(from) || length(from) != 1) {
+      usethis::ui_stop("'from' must be a single character string (path or URL)")
+    }
+    # Validate that from is either a URL or an existing path
+    if (!stringr::str_detect(from, "^https?://") && !fs::dir_exists(from) && !fs::file_exists(from)) {
+      usethis::ui_stop("Source path does not exist: {from}")
+    }
+  }
+
+  if (!is.logical(backup) || length(backup) != 1) {
+    usethis::ui_stop("'backup' must be a single logical value (TRUE/FALSE)")
+  }
+
+  if (!is.logical(force_update) || length(force_update) != 1) {
+    usethis::ui_stop("'force_update' must be a single logical value (TRUE/FALSE)")
+  }
+
   # Auto-discovery: if no specific parameters, install everything found
   if (is.null(modules) && is.null(type)) {
     return(install_everything_found(from, backup, force_update))
@@ -342,8 +373,21 @@ install_single_module <- function(module, type, source, modules_dir) {
 #' remove_snippet_modules("ggplot2", type = "r", backup = FALSE)
 #' }}
 remove_snippet_modules <- function(modules, type = "r", backup = TRUE) {
+  # Input validation
+  if (missing(modules) || !is.character(modules) || length(modules) == 0) {
+    usethis::ui_stop("'modules' must be a non-empty character vector")
+  }
+
+  if (!is.character(type) || length(type) != 1) {
+    usethis::ui_stop("'type' must be a single character string")
+  }
+
+  if (!is.logical(backup) || length(backup) != 1) {
+    usethis::ui_stop("'backup' must be a single logical value (TRUE/FALSE)")
+  }
+
   type <- match_snippet_type(type, several.ok = FALSE)
-  
+
   if (length(modules) == 0) {
     usethis::ui_stop("No modules specified for removal")
   }

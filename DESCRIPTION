@@ -1,11 +1,17 @@
 Package: snippets
 Title: Manage RStudio Snippets
-Version: 0.0.21
-Date: 2024-09-18
-Authors@R: 
+Version: 0.0.22
+Date: 2025-11-12
+Authors@R:
     person("Vilmantas", "Gegzna", , "GegznaV@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-9500-5167"))
-Description: Manage RStudio snippets.
+Description: Provides a modular system for installing, managing, and backing up
+    RStudio code snippets. Supports intelligent module discovery from local
+    directories and URLs, automatic composition of snippet files, and registry-based
+    tracking of installed modules. Features include automatic backups before
+    modifications, fallback mechanisms from specific modules to generic type files,
+    and cross-platform compatibility. Simplifies the snippet management workflow
+    for R users working with RStudio.
 License: MIT + file LICENSE
 URL: https://gegznav.github.io/snippets/
 BugReports: https://github.com/GegznaV/snippets/issues

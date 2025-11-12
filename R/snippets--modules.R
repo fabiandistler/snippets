@@ -40,34 +40,32 @@ auto_detect_source <- function(path) {
 #' @noRd
 discover_snippet_files <- function(path = NULL, type = NULL) {
   source_type <- auto_detect_source(path)
-  
+
   if (source_type == "default") {
     path <- get_snippet_modules_dir()
     source_type <- "local"
   }
-  
+
   discovered <- list(
     modules = data.frame(
       module = character(0),
       type = character(0),
       filename = character(0),
-      path = character(0),
-      stringsAsFactors = FALSE
+      path = character(0)
     ),
     generics = data.frame(
       type = character(0),
-      filename = character(0), 
-      path = character(0),
-      stringsAsFactors = FALSE
+      filename = character(0),
+      path = character(0)
     )
   )
-  
+
   if (source_type == "local") {
     discovered <- discover_local_files(path, type)
   } else if (source_type == "url") {
     discovered <- discover_url_files(path, type)
   }
-  
+
   discovered
 }
 
@@ -81,55 +79,68 @@ discover_local_files <- function(dir_path, type = NULL) {
   if (!fs::dir_exists(dir_path)) {
     return(list(modules = data.frame(), generics = data.frame()))
   }
-  
+
   # Find all .snippets files
   snippet_files <- fs::dir_ls(dir_path, regexp = ".*\\.snippets$")
-  
-  modules <- data.frame(
-    module = character(0), type = character(0), 
-    filename = character(0), path = character(0),
-    stringsAsFactors = FALSE
-  )
-  
-  generics <- data.frame(
-    type = character(0), filename = character(0), path = character(0),
-    stringsAsFactors = FALSE
-  )
-  
+
+  # Use lists to collect data frames, then combine once
+  module_list <- list()
+  generic_list <- list()
+
   for (file in snippet_files) {
     filename <- fs::path_file(file)
-    
+
     # Try parsing as module format: [module]-[type].snippets
     if (stringr::str_detect(filename, "^.+-.+\\.snippets$")) {
       tryCatch({
         parsed <- parse_module_filename(filename)
         if (is.null(type) || parsed$type == type) {
-          modules <- rbind(modules, data.frame(
+          module_list[[length(module_list) + 1]] <- data.frame(
             module = parsed$module,
             type = parsed$type,
             filename = filename,
-            path = file,
-            stringsAsFactors = FALSE
-          ))
+            path = file
+          )
         }
       }, error = function(e) {
         # Skip invalid module files
       })
     }
-    # Try parsing as generic format: [type].snippets  
+    # Try parsing as generic format: [type].snippets
     else if (stringr::str_detect(filename, "^[^-]+\\.snippets$")) {
       file_type <- stringr::str_remove(filename, "\\.snippets$")
       if (is.null(type) || file_type == type) {
-        generics <- rbind(generics, data.frame(
+        generic_list[[length(generic_list) + 1]] <- data.frame(
           type = file_type,
           filename = filename,
-          path = file,
-          stringsAsFactors = FALSE
-        ))
+          path = file
+        )
       }
     }
   }
-  
+
+  # Combine all data frames at once
+  modules <- if (length(module_list) > 0) {
+    dplyr::bind_rows(module_list)
+  } else {
+    data.frame(
+      module = character(0),
+      type = character(0),
+      filename = character(0),
+      path = character(0)
+    )
+  }
+
+  generics <- if (length(generic_list) > 0) {
+    dplyr::bind_rows(generic_list)
+  } else {
+    data.frame(
+      type = character(0),
+      filename = character(0),
+      path = character(0)
+    )
+  }
+
   list(modules = modules, generics = generics)
 }
 
@@ -143,7 +154,7 @@ discover_url_files <- function(base_url, type = NULL) {
   # Check if this is a direct file URL (ends with .snippets)
   if (stringr::str_detect(base_url, "\\.snippets$")) {
     filename <- basename(base_url)
-    
+
     # Parse filename to extract type and module info
     if (stringr::str_detect(filename, "^[^-]+-[^-]+\\.snippets$")) {
       # Module format: module-type.snippets
@@ -151,17 +162,19 @@ discover_url_files <- function(base_url, type = NULL) {
       if (length(parts) == 2) {
         module_name <- parts[1]
         file_type <- parts[2]
-        
+
         if (is.null(type) || file_type == type) {
           return(list(
             modules = data.frame(
-              module = module_name, type = file_type,
-              filename = filename, path = base_url,
-              stringsAsFactors = FALSE
+              module = module_name,
+              type = file_type,
+              filename = filename,
+              path = base_url
             ),
             generics = data.frame(
-              type = character(0), filename = character(0), path = character(0),
-              stringsAsFactors = FALSE
+              type = character(0),
+              filename = character(0),
+              path = character(0)
             )
           ))
         }
@@ -169,33 +182,37 @@ discover_url_files <- function(base_url, type = NULL) {
     } else if (stringr::str_detect(filename, "^[^-]+\\.snippets$")) {
       # Generic format: type.snippets
       file_type <- stringr::str_remove(filename, "\\.snippets$")
-      
+
       if (is.null(type) || file_type == type) {
         return(list(
           modules = data.frame(
-            module = character(0), type = character(0),
-            filename = character(0), path = character(0),
-            stringsAsFactors = FALSE
+            module = character(0),
+            type = character(0),
+            filename = character(0),
+            path = character(0)
           ),
           generics = data.frame(
-            type = file_type, filename = filename, path = base_url,
-            stringsAsFactors = FALSE
+            type = file_type,
+            filename = filename,
+            path = base_url
           )
         ))
       }
     }
   }
-  
+
   # Default: empty discovery for non-file URLs or unrecognized patterns
   list(
     modules = data.frame(
-      module = character(0), type = character(0),
-      filename = character(0), path = character(0),
-      stringsAsFactors = FALSE
+      module = character(0),
+      type = character(0),
+      filename = character(0),
+      path = character(0)
     ),
     generics = data.frame(
-      type = character(0), filename = character(0), path = character(0),
-      stringsAsFactors = FALSE
+      type = character(0),
+      filename = character(0),
+      path = character(0)
     )
   )
 }
@@ -583,72 +600,76 @@ compose_snippet_modules <- function(modules, type, output_path) {
 #' list_snippet_modules(source = "local", type = "r")
 #' }}
 list_snippet_modules <- function(type = "all", source = "all", installed_only = FALSE) {
-  modules_info <- data.frame(
-    module = character(0),
-    type = character(0),
-    source = character(0),
-    installed = logical(0),
-    path = character(0),
-    stringsAsFactors = FALSE
-  )
-  
+  module_list <- list()
+
   # Get local modules
   if (source %in% c("all", "local")) {
     modules_dir <- get_snippet_modules_dir()
     if (fs::dir_exists(modules_dir)) {
       # Find all .snippets files (both [module]-[type].snippets and [type].snippets)
       all_snippet_files <- fs::dir_ls(modules_dir, regexp = ".*\\.snippets$")
-      
+
       for (file in all_snippet_files) {
         filename <- fs::path_file(file)
-        
+
         # Try to parse as [module]-[type].snippets first
         if (stringr::str_detect(filename, "^.+-.+\\.snippets$")) {
           tryCatch({
             parsed <- parse_module_filename(filename)
             if (type == "all" || parsed$type == type) {
-              modules_info <- rbind(modules_info, data.frame(
+              module_list[[length(module_list) + 1]] <- data.frame(
                 module = parsed$module,
                 type = parsed$type,
                 source = "local",
                 installed = FALSE,
-                path = file,
-                stringsAsFactors = FALSE
-              ))
+                path = file
+              )
             }
           }, error = function(e) {
             # Skip files that can't be parsed as modules
           })
-        } 
+        }
         # Try to parse as [type].snippets (generic format)
         else if (stringr::str_detect(filename, "^[^-]+\\.snippets$")) {
           file_type <- stringr::str_remove(filename, "\\.snippets$")
           if (type == "all" || file_type == type) {
-            modules_info <- rbind(modules_info, data.frame(
+            module_list[[length(module_list) + 1]] <- data.frame(
               module = file_type,  # Use type as module name for generic files
               type = file_type,
               source = "local",
               installed = FALSE,
-              path = file,
-              stringsAsFactors = FALSE
-            ))
+              path = file
+            )
           }
         }
       }
     }
   }
-  
+
+  # Combine all modules at once
+  modules_info <- if (length(module_list) > 0) {
+    dplyr::bind_rows(module_list)
+  } else {
+    data.frame(
+      module = character(0),
+      type = character(0),
+      source = character(0),
+      installed = logical(0),
+      path = character(0)
+    )
+  }
+
   # Check installation status
   registry <- read_module_registry()
   for (i in seq_len(nrow(modules_info))) {
     module_key <- paste(modules_info$module[i], modules_info$type[i], sep = "-")
     modules_info$installed[i] <- module_key %in% names(registry$modules)
   }
-  
+
   if (installed_only) {
     modules_info <- modules_info[modules_info$installed, ]
   }
-  
+
   modules_info
 }
 
@@ -671,41 +692,46 @@ list_snippet_modules <- function(type = "all", source = "all", installed_only = 
 #' }}
 show_active_modules <- function(type = "all") {
   registry <- read_module_registry()
-  
+
   if (length(registry$modules) == 0) {
     usethis::ui_info("No modules are currently installed.")
     return(invisible(data.frame()))
   }
-  
-  active_info <- data.frame(
-    module = character(0),
-    type = character(0),
-    source = character(0),
-    installed_date = character(0),
-    stringsAsFactors = FALSE
-  )
-  
+
+  active_list <- list()
+
   for (module_key in names(registry$modules)) {
     module_data <- registry$modules[[module_key]]
     parsed <- parse_module_filename(paste0(module_key, ".snippets"))
-    
+
     if (type == "all" || parsed$type == type) {
-      active_info <- rbind(active_info, data.frame(
+      active_list[[length(active_list) + 1]] <- data.frame(
         module = parsed$module,
         type = parsed$type,
         source = if(is.null(module_data$source)) "unknown" else module_data$source,
-        installed_date = if(is.null(module_data$installed_date)) "unknown" else module_data$installed_date,
-        stringsAsFactors = FALSE
-      ))
+        installed_date = if(is.null(module_data$installed_date)) "unknown" else module_data$installed_date
+      )
     }
   }
-  
+
+  # Combine all active modules at once
+  active_info <- if (length(active_list) > 0) {
+    dplyr::bind_rows(active_list)
+  } else {
+    data.frame(
+      module = character(0),
+      type = character(0),
+      source = character(0),
+      installed_date = character(0)
+    )
+  }
+
   if (nrow(active_info) > 0) {
     usethis::ui_info("Active modules:")
     print(active_info)
   } else {
     usethis::ui_info("No modules of type '{type}' are installed.")
   }
-  
+
   invisible(active_info)
 }
