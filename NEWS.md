@@ -2,25 +2,34 @@
 
 ## Bug Fixes
 
-* Fixed critical bug in `open_rstudio_snippets_file()` that was checking the wrong variable (`type` instead of `file`), causing incorrect file existence detection (#5)
+* Fixed critical bug in `open_rstudio_snippets_file()` that was checking the wrong variable (`type` instead of `file`), causing incorrect file existence detection
 
 ## Performance Improvements
 
-* Significantly improved performance of module discovery and listing functions by replacing inefficient `rbind()` loops with list accumulation followed by `dplyr::bind_rows()`. This provides ~10-100x speedup for large numbers of modules
-
-* Optimized the following functions:
-  - `discover_local_files()`
-  - `list_snippet_modules()`
-  - `show_active_modules()`
+* Improved performance of module discovery and listing functions by replacing inefficient `rbind()` in loops with list accumulation followed by `data.table::rbindlist()`
+  - Affects: `discover_local_files()`, `list_snippet_modules()`, `show_active_modules()`
+  - Expected performance improvement for repositories with many snippet modules
 
 ## Code Quality
 
+* Added input validation to `install_snippet_modules()` and `remove_snippet_modules()`
+  - Validates parameter types (character, logical)
+  - Validates parameter lengths
+  - Provides clear error messages for invalid inputs
+
 * Removed obsolete `stringsAsFactors = FALSE` arguments throughout the codebase (no longer needed in R >= 4.0.0)
+
+* Added test suite for input validation (`tests/testthat/test-input-validation.R`)
 
 * Added comprehensive code review findings document (`REVIEW_FINDINGS.md`)
 
+## Dependencies
+
+* Added `data.table` to Imports for improved data frame operations
+
 ## Internal Changes
 
+* Replaced `dplyr::bind_rows()` with `data.table::rbindlist()` for better performance
 * Improved code maintainability by consolidating data frame operations
 
 ---

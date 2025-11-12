@@ -121,7 +121,7 @@ discover_local_files <- function(dir_path, type = NULL) {
 
   # Combine all data frames at once
   modules <- if (length(module_list) > 0) {
-    dplyr::bind_rows(module_list)
+    data.table::rbindlist(module_list, use.names = TRUE, fill = TRUE)
   } else {
     data.frame(
       module = character(0),
@@ -132,7 +132,7 @@ discover_local_files <- function(dir_path, type = NULL) {
   }
 
   generics <- if (length(generic_list) > 0) {
-    dplyr::bind_rows(generic_list)
+    data.table::rbindlist(generic_list, use.names = TRUE, fill = TRUE)
   } else {
     data.frame(
       type = character(0),
@@ -648,7 +648,7 @@ list_snippet_modules <- function(type = "all", source = "all", installed_only = 
 
   # Combine all modules at once
   modules_info <- if (length(module_list) > 0) {
-    dplyr::bind_rows(module_list)
+    data.table::rbindlist(module_list, use.names = TRUE, fill = TRUE)
   } else {
     data.frame(
       module = character(0),
@@ -716,7 +716,7 @@ show_active_modules <- function(type = "all") {
 
   # Combine all active modules at once
   active_info <- if (length(active_list) > 0) {
-    dplyr::bind_rows(active_list)
+    data.table::rbindlist(active_list, use.names = TRUE, fill = TRUE)
   } else {
     data.frame(
       module = character(0),

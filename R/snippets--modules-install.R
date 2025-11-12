@@ -90,12 +90,8 @@ install_snippet_modules <- function(modules = NULL,
   }
 
   if (!is.null(from)) {
-    if (!is.character(from) || length(from) != 1) {
-      usethis::ui_stop("'from' must be a single character string (path or URL)")
-    }
-    # Validate that from is either a URL or an existing path
-    if (!stringr::str_detect(from, "^https?://") && !fs::dir_exists(from) && !fs::file_exists(from)) {
-      usethis::ui_stop("Source path does not exist: {from}")
+    if (!is.character(from) || length(from) != 1 || from == "") {
+      usethis::ui_stop("'from' must be a non-empty character string (path or URL)")
     }
   }
 
@@ -388,10 +384,6 @@ remove_snippet_modules <- function(modules, type = "r", backup = TRUE) {
 
   type <- match_snippet_type(type, several.ok = FALSE)
 
-  if (length(modules) == 0) {
-    usethis::ui_stop("No modules specified for removal")
-  }
-  
   # Handle "all" modules case
   if (length(modules) == 1 && modules == "all") {
     modules <- get_installed_modules_for_type(type)

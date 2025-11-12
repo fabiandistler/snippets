@@ -18,6 +18,7 @@ BugReports: https://github.com/GegznaV/snippets/issues
 Imports:
     backup.tools (>= 0.0.3),
     crayon,
+    data.table,
     dplyr,
     fs,
     jsonlite,
