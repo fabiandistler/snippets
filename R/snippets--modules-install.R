@@ -70,12 +70,39 @@
 #' install_snippet_modules(force_update = TRUE)  # Force update all
 #' install_snippet_modules("dplyr", from = "path/", force_update = TRUE)  # Force specific
 #' }}
-install_snippet_modules <- function(modules = NULL, 
-                                   type = NULL, 
+install_snippet_modules <- function(modules = NULL,
+                                   type = NULL,
                                    from = NULL,
                                    backup = TRUE,
                                    force_update = FALSE) {
-  
+
+  # Input validation
+  if (!is.null(modules)) {
+    if (!is.character(modules) || length(modules) == 0) {
+      usethis::ui_stop("'modules' must be a non-empty character vector")
+    }
+  }
+
+  if (!is.null(type)) {
+    if (!is.character(type) || length(type) == 0) {
+      usethis::ui_stop("'type' must be a non-empty character vector")
+    }
+  }
+
+  if (!is.null(from)) {
+    if (!is.character(from) || length(from) != 1 || from == "") {
+      usethis::ui_stop("'from' must be a non-empty character string (path or URL)")
+    }
+  }
+
+  if (!is.logical(backup) || length(backup) != 1) {
+    usethis::ui_stop("'backup' must be a single logical value (TRUE/FALSE)")
+  }
+
+  if (!is.logical(force_update) || length(force_update) != 1) {
+    usethis::ui_stop("'force_update' must be a single logical value (TRUE/FALSE)")
+  }
+
   # Auto-discovery: if no specific parameters, install everything found
   if (is.null(modules) && is.null(type)) {
     return(install_everything_found(from, backup, force_update))
@@ -342,12 +369,21 @@ install_single_module <- function(module, type, source, modules_dir) {
 #' remove_snippet_modules("ggplot2", type = "r", backup = FALSE)
 #' }}
 remove_snippet_modules <- function(modules, type = "r", backup = TRUE) {
-  type <- match_snippet_type(type, several.ok = FALSE)
-  
-  if (length(modules) == 0) {
-    usethis::ui_stop("No modules specified for removal")
+  # Input validation
+  if (missing(modules) || !is.character(modules) || length(modules) == 0) {
+    usethis::ui_stop("'modules' must be a non-empty character vector")
   }
-  
+
+  if (!is.character(type) || length(type) != 1) {
+    usethis::ui_stop("'type' must be a single character string")
+  }
+
+  if (!is.logical(backup) || length(backup) != 1) {
+    usethis::ui_stop("'backup' must be a single logical value (TRUE/FALSE)")
+  }
+
+  type <- match_snippet_type(type, several.ok = FALSE)
+
   # Handle "all" modules case
   if (length(modules) == 1 && modules == "all") {
     modules <- get_installed_modules_for_type(type)

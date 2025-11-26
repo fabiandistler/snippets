@@ -26,7 +26,7 @@ open_rstudio_snippets_file <- function(type, rstudio_version = "auto") {
   force(type)
   type <- match_snippet_type(type, several.ok = FALSE)
   file <- path_rstudio_snippets_file(type = type, rstudio_version = rstudio_version)
-  not_found <- !fs::file_exists(type)
+  not_found <- !fs::file_exists(file)
   if (any(not_found)) {
     type_txt <- usethis::ui_field(type)
     usethis::ui_stop(paste0(
